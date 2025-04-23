@@ -1,0 +1,7 @@
+name = "Avenger"
+grammar = "avenger"
+path_suffixes = ["avgr", "avenger"]
+line_comments = ["//", "--"]
+brackets = [
+    { start = "(", end = ")", close = true, newline = false },
+]

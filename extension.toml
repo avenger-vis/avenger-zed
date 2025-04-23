@@ -1,0 +1,11 @@
+id = "avenger"
+name = "Avenger"
+version = "0.0.1"
+schema_version = 1
+authors = ["Your Name <you@example.com>"]
+description = "Avenger Language Support"
+repository = "https://github.com/your-name/my-zed-extension"
+
+[grammars.avenger]
+repository = "https://github.com/avenger-vis/tree-sitter-avenger"
+rev = "e766c0932d08c0acb233e925e0b4cbd4fdfc7e9a"

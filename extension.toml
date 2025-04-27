@@ -8,4 +8,4 @@ repository = "https://github.com/your-name/my-zed-extension"
 
 [grammars.avenger]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger"
-rev = "5e9ae3b5b7cbe6e10913e07468026ba7967950af"
+rev = "59214311df4df7d38e1230c9bb42844f213760aa"

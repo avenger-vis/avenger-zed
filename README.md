@@ -157,3 +157,6 @@ native-window acceptance on platforms not tested manually.
 The extension is MIT licensed. The synchronized query files are derived from
 the MIT-licensed `avenger-vis/tree-sitter-avenger` repository at the exact
 revision recorded above.
+
+The reviewed, authorization-gated registry procedure is recorded in
+[`PUBLISHING.md`](PUBLISHING.md).

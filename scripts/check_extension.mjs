@@ -35,6 +35,7 @@ for (const forbidden of ["avgr", '"//', '"#']) {
 
 const required = [
   "LICENSE",
+  "PUBLISHING.md",
   "README.md",
   "languages/avenger/highlights.scm",
   "languages/avenger/brackets.scm",

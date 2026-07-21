@@ -55,3 +55,7 @@ jobs:
       - name: Test queries and capture baselines
         run: pnpm test:queries -- --grammar-root ../tree-sitter-avenger
         working-directory: avenger-zed
+
+      - name: Measure query performance
+        run: pnpm measure:queries -- --grammar-root ../tree-sitter-avenger
+        working-directory: avenger-zed

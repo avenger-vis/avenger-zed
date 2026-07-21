@@ -44,8 +44,14 @@ grammar checkout named by `extension.toml`:
 pnpm install
 pnpm sync:queries -- --grammar-root ../tree-sitter-avenger --check
 pnpm test:queries -- --grammar-root ../tree-sitter-avenger
+pnpm measure:queries -- --grammar-root ../tree-sitter-avenger
 pnpm check
 ```
+
+The performance probe reports warmed median CLI timings for deterministic
+minimal, representative, and large charts. It includes process startup and is
+used to spot scaling regressions, not as a machine-independent pass/fail
+threshold. Reviewed platform baselines live under `test/metrics/`.
 
 The extension registers only the combined `tree-sitter-avenger` grammar. SQL
 subtrees are part of that parser; ordinary `.sql` files are not claimed.

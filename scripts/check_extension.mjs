@@ -42,6 +42,8 @@ const required = [
   "languages/avenger/outline.scm",
   "languages/avenger/runnables.scm",
   "languages/avenger/tasks.json",
+  "scripts/measure_queries.mjs",
+  "test/metrics/query-performance-macos-arm64-2026-07-21.json",
 ];
 for (const path of required) assert(existsSync(resolve(root, path)), `missing ${path}`);
 for (const forbidden of ["Cargo.toml", "Cargo.lock", "src/lib.rs", "extension.wasm"]) {

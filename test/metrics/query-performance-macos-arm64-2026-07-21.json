@@ -1,7 +1,7 @@
 {
-  "recorded_at": "2026-07-21T21:51:52.380Z",
+  "recorded_at": "2026-07-21T22:00:10.669Z",
   "platform": "darwin-arm64",
-  "node": "v24.14.0",
+  "node": "v20.19.6",
   "tree_sitter": "0.26.3",
   "grammar_revision": "df950f49ade87700a8fb1823f15def56ba24a70a",
   "method": "median of 7 warmed tree-sitter CLI process runs; process startup included",
@@ -10,33 +10,33 @@
       "bytes": 177,
       "marks": 1,
       "queries_ms": {
-        "highlights": 159.811,
-        "brackets": 138.192,
-        "indents": 121.084,
-        "outline": 121.793,
-        "runnables": 113.209
+        "highlights": 84.197,
+        "brackets": 112.354,
+        "indents": 109.048,
+        "outline": 119.189,
+        "runnables": 101.277
       }
     },
     "representative": {
       "bytes": 7872,
       "marks": 100,
       "queries_ms": {
-        "highlights": 136.013,
-        "brackets": 129.879,
-        "indents": 156.434,
-        "outline": 164.944,
-        "runnables": 128.577
+        "highlights": 133.649,
+        "brackets": 178.007,
+        "indents": 121.373,
+        "outline": 144.073,
+        "runnables": 172.504
       }
     },
     "large": {
       "bytes": 80772,
       "marks": 1000,
       "queries_ms": {
-        "highlights": 197.006,
-        "brackets": 227.77,
-        "indents": 150.655,
-        "outline": 222.168,
-        "runnables": 177.309
+        "highlights": 231.017,
+        "brackets": 239.976,
+        "indents": 193.66,
+        "outline": 173.79,
+        "runnables": 167.805
       }
     }
   }

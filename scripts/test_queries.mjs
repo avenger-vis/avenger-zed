@@ -1,5 +1,6 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { basename, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -107,6 +108,30 @@ const itemCount = (outline.match(/ - item,/g) ?? []).length;
 const nameCount = (outline.match(/ - name,/g) ?? []).length;
 if (itemCount !== nameCount) throw new Error(`outline has ${itemCount} items but ${nameCount} names`);
 
+const mutationRoot = mkdtempSync(resolve(tmpdir(), "avenger-zed-recovery-"));
+const recoveryMutations = new Map([
+  ["missing-root-close", "avenger 1;\nchart cartesian as recovery {\n  mark symbol as after_error {}\n"],
+  ["missing-semicolon", "avenger 1;\nchart cartesian as recovery {\n  broken: 1\n  mark symbol as after_error {}\n}\n"],
+  ["missing-paren", "avenger 1;\nchart cartesian as recovery {\n  broken: coalesce(1, 2;\n  mark symbol as after_error {}\n}\n"],
+  ["missing-bracket", "avenger 1;\nchart cartesian as recovery {\n  broken: [1, 2;\n  mark symbol as after_error {}\n}\n"],
+  ["unterminated-string", "avenger 1;\nchart cartesian as recovery {\n  broken: 'unterminated;\n  mark symbol as after_error {}\n}\n"],
+  ["truncated-binding", "avenger 1;\nchart cartesian as recovery {\n  broken: $component.;\n  mark symbol as after_error {}\n}\n"],
+  ["truncated-arrow-type", "avenger 1;\nchart cartesian as recovery {\n  param as broken { type: struct(field('x', int64); }\n  mark symbol as after_error {}\n}\n"],
+  ["truncated-sql", "avenger 1;\nchart cartesian as recovery {\n  sql: FROM vega.movies SELECT (rating;\n  mark symbol as after_error {}\n}\n"],
+]);
+try {
+  for (const [name, source] of recoveryMutations) {
+    const path = resolve(mutationRoot, `${name}.avenger`);
+    writeFileSync(path, source);
+    run(["parse", "--no-ranges", path], 1);
+    for (const query of ["highlights", "brackets", "indents", "outline", "runnables"]) {
+      run(["query", "--captures", resolve(queryRoot, `${query}.scm`), path]);
+    }
+  }
+} finally {
+  rmSync(mutationRoot, { recursive: true, force: true });
+}
+
 const compilerFixtureRoot = resolve(grammarRoot, "test", "fixtures");
 const compilerManifest = JSON.parse(readFileSync(resolve(compilerFixtureRoot, "avenger-fixtures.json"), "utf8"));
 const validClasses = new Set(["strict_valid", "canonical_valid", "example_valid", "stdlib_valid"]);
@@ -127,4 +152,4 @@ for (const name of ["highlights.scm", "brackets.scm", "indents.scm", "outline.sc
   }
 }
 
-console.log(`query suite passed for ${fixtures.length} focused and ${compilerFixtures.length} compiler-valid fixtures at ${revision}`);
+console.log(`query suite passed for ${fixtures.length} focused, ${recoveryMutations.size} recovery mutations, and ${compilerFixtures.length} compiler-valid fixtures at ${revision}`);

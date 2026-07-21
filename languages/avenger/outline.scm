@@ -1,4 +1,7 @@
 ; Root declarations.
+((line_comment) @annotation
+  (#match? @annotation "^-- \\|"))
+
 (chart_declaration
   "chart" @context
   kind: (identifier) @context.extra
@@ -50,6 +53,7 @@
 (derive_declaration "derive" @context (as_clause name: (identifier) @name)) @item
 (adjust_declaration "adjust" @context (as_clause name: (identifier) @name)) @item
 (dimension_declaration "dimension" @context (as_clause name: (identifier) @name)) @item
+(overlay_declaration "overlay" @context (as_clause name: (identifier) @name)) @item
 (slot_declaration "slot" @context kind: (slot_shape) @context.extra (as_clause name: (identifier) @name)) @item
 
 ; Directly named declarations.
@@ -58,3 +62,5 @@
 (match_declaration "match" @context name: (identifier) @name) @item
 (part_declaration "part" @context name: (identifier) @name) @item
 (layer_declaration "layer" @context name: (identifier) @name) @item
+(field_declaration "field" @context name: (identifier) @name) @item
+(export_declaration "export" @context alias: (identifier) @name) @item

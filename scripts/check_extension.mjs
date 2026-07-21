@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -43,9 +44,12 @@ const required = [
   "languages/avenger/tasks.json",
 ];
 for (const path of required) assert(existsSync(resolve(root, path)), `missing ${path}`);
-for (const forbidden of ["Cargo.toml", "Cargo.lock", "src/lib.rs", "extension.wasm", "grammars"]) {
+for (const forbidden of ["Cargo.toml", "Cargo.lock", "src/lib.rs", "extension.wasm"]) {
   assert(!existsSync(resolve(root, forbidden)), `configuration-only extension must not contain ${forbidden}`);
 }
+assert(read(".gitignore").split(/\r?\n/).includes("grammars/"), "Zed's generated grammar checkout must be ignored");
+assert(execFileSync("git", ["ls-files", "grammars"], { cwd: root, encoding: "utf8" }).trim() === "",
+  "configuration-only extension must not track generated grammars");
 
 const captureContracts = new Map([
   ["highlights.scm", new Set([
@@ -80,7 +84,7 @@ assert(task.use_new_terminal === false && task.allow_concurrent_runs === true, "
 assert(task.reveal === "no_focus" && task.hide === "never" && task.save === "all", "task UI/save policy changed");
 assert(read("languages/avenger/runnables.scm").includes("(#set! tag avenger-watch)"), "runnable tag changed");
 
-const skippedDirectories = new Set([".git", ".tmp", "node_modules"]);
+const skippedDirectories = new Set([".git", ".tmp", "grammars", "node_modules"]);
 const walk = directory => readdirSync(directory).flatMap(name => {
   const path = resolve(directory, name);
   return statSync(path).isDirectory()

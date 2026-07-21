@@ -1,0 +1,34 @@
+avenger 1;
+
+chart custom as demo {
+  private param as threshold { type: float64; default: 1; }
+  public store as rows { field id: int64; }
+  selection as brush { type: interval; }
+  resource tiles as osm {}
+  group as panel {}
+  mark symbol as points {}
+  mark line {}
+  transform filter as visible {}
+  transform formula {}
+  tool pan_zoom as pan {}
+  tool stateless;
+  widget slider as size {}
+  view raster as image {}
+  view cartesian {}
+  on pointermove as hover {}
+  on click {}
+  cell cartesian as left {}
+  cell polar {}
+  variable row as mpg {}
+  variable row {}
+  adjust dodge as shifted {}
+  adjust {}
+  derive aggregate as totals {}
+  derive aggregate {}
+  overlay as annotation {}
+  dimension as frame {}
+  output count: coalesce($threshold, 0);
+  export panel.points as exported_points;
+  part title {}
+  layer foreground {}
+}

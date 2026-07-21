@@ -1,5 +1,6 @@
 avenger 1;
 
+-- Ordinary comments are not outline annotations.
 catalog memory as local {
   schema tables as vega {
     table inline as movies {

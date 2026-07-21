@@ -1,3 +1,4 @@
+annotation 3:0-4:0 "-- | Interactive chart fixture.\n"
 item 4:0-16:1 "chart cartesian as values {\n  param as width {\n    type: float64;\n    default: 640;\n  }\n  store as rows {\n    schema: struct(field('x', float64));\n  }\n  mark symbol as points {\n    x: coalesce($width@start, 0);\n  }\n  sql: FROM vega.movies AS m SELECT m.\"title\";\n}"
 context 4:0-4:5 "chart"
 context.extra 4:6-4:15 "cartesian"

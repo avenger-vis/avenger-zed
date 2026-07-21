@@ -1,7 +1,7 @@
--- | Interactive chart fixture.
 avenger 1;
 import './catalog.data.avenger' as data;
 
+-- | Interactive chart fixture.
 chart cartesian as values {
   param as width {
     type: float64;

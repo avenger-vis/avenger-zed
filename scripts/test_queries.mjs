@@ -41,6 +41,19 @@ const run = (args, expectedStatus = 0) => {
   return result.stdout;
 };
 
+const runIgnoringOutput = args => {
+  const result = spawnSync(treeSitter, args, {
+    cwd: grammarRoot,
+    encoding: "utf8",
+    env: { ...process.env, NO_COLOR: "1" },
+    shell: process.platform === "win32",
+    stdio: ["ignore", "ignore", "pipe"],
+  });
+  if (result.status !== 0) {
+    throw new Error(`tree-sitter ${args.slice(0, 3).join(" ")} ... exited ${result.status}\n${result.stderr}`);
+  }
+};
+
 const fixtureRoot = resolve(root, "test", "fixtures");
 const fixtures = readdirSync(fixtureRoot)
   .filter(name => name.endsWith(".avenger"))
@@ -89,4 +102,24 @@ const itemCount = (outline.match(/ - item,/g) ?? []).length;
 const nameCount = (outline.match(/ - name,/g) ?? []).length;
 if (itemCount !== nameCount) throw new Error(`outline has ${itemCount} items but ${nameCount} names`);
 
-console.log(`query suite passed for ${fixtures.length} fixtures at ${revision}`);
+const compilerFixtureRoot = resolve(grammarRoot, "test", "fixtures");
+const compilerManifest = JSON.parse(readFileSync(resolve(compilerFixtureRoot, "avenger-fixtures.json"), "utf8"));
+const validClasses = new Set(["strict_valid", "canonical_valid", "example_valid", "stdlib_valid"]);
+const compilerFixtures = compilerManifest.sources
+  .filter(source => validClasses.has(source.classification))
+  .map(source => resolve(compilerFixtureRoot, "compiler", "sources", source.path));
+if (compilerFixtures.length !== 93) {
+  throw new Error(`expected 93 compiler-valid fixtures, found ${compilerFixtures.length}`);
+}
+const batches = [];
+for (let index = 0; index < compilerFixtures.length; index += 20) {
+  batches.push(compilerFixtures.slice(index, index + 20));
+}
+for (const batch of batches) runIgnoringOutput(["parse", "--quiet", ...batch]);
+for (const name of ["highlights.scm", "brackets.scm", "indents.scm", "outline.scm", "runnables.scm"]) {
+  for (const batch of batches) {
+    runIgnoringOutput(["query", "--captures", resolve(queryRoot, name), ...batch]);
+  }
+}
+
+console.log(`query suite passed for ${fixtures.length} focused and ${compilerFixtures.length} compiler-valid fixtures at ${revision}`);

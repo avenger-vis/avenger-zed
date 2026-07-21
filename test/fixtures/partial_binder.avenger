@@ -1,0 +1,10 @@
+avenger 1;
+
+chart cartesian as recovery {
+  param as {
+    type: float64;
+  }
+  mark symbol as after_error {
+    x: 2;
+  }
+}

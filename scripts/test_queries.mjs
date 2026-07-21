@@ -59,8 +59,13 @@ const fixtures = readdirSync(fixtureRoot)
   .filter(name => name.endsWith(".avenger"))
   .sort()
   .map(name => resolve(fixtureRoot, name));
+const recoveryFixtures = new Set([
+  "malformed_chart_header.avenger",
+  "partial_binder.avenger",
+  "recovery.avenger",
+]);
 for (const fixture of fixtures) {
-  const recovery = basename(fixture) === "recovery.avenger";
+  const recovery = recoveryFixtures.has(basename(fixture));
   run(["parse", "--no-ranges", fixture], recovery ? 1 : 0);
 }
 

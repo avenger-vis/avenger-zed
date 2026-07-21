@@ -1,0 +1,7 @@
+avenger 1;
+
+chart polar {
+  mark arc {
+    angle: 1;
+  }
+}

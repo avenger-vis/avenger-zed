@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  extension:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out extension
+        uses: actions/checkout@v4
+        with:
+          path: avenger-zed
+
+      - name: Check out pinned grammar
+        uses: actions/checkout@v4
+        with:
+          repository: avenger-vis/tree-sitter-avenger
+          ref: df950f49ade87700a8fb1823f15def56ba24a70a
+          path: tree-sitter-avenger
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.6
+          cache: pnpm
+          cache-dependency-path: avenger-zed/pnpm-lock.yaml
+
+      - name: Install test tools
+        run: pnpm install --frozen-lockfile
+        working-directory: avenger-zed
+
+      - name: Audit extension package
+        run: pnpm check
+        working-directory: avenger-zed
+
+      - name: Verify grammar-owned query copies
+        run: pnpm sync:queries -- --grammar-root ../tree-sitter-avenger --check
+        working-directory: avenger-zed
+
+      - name: Test queries and capture baselines
+        run: pnpm test:queries -- --grammar-root ../tree-sitter-avenger
+        working-directory: avenger-zed

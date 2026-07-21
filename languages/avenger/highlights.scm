@@ -1,109 +1,254 @@
-(comment) @comment
-(marginalia) @comment
-(slash_comment) @comment
+; Avenger SQL syntax captures. Semantic schema/type distinctions belong to the LSP.
 
-(keyword_true) @boolean
-(keyword_false) @boolean
+[
+  (keyword_all)
+  (keyword_and)
+  (keyword_as)
+  (keyword_asc)
+  (keyword_between)
+  (keyword_by)
+  (keyword_case)
+  (keyword_cast)
+  (keyword_cross)
+  (keyword_current)
+  (keyword_date)
+  (keyword_desc)
+  (keyword_distinct)
+  (keyword_double)
+  (keyword_else)
+  (keyword_end)
+  (keyword_except)
+  (keyword_exclude)
+  (keyword_exists)
+  (keyword_false)
+  (keyword_filter)
+  (keyword_first)
+  (keyword_following)
+  (keyword_from)
+  (keyword_full)
+  (keyword_group)
+  (keyword_groups)
+  (keyword_having)
+  (keyword_ilike)
+  (keyword_in)
+  (keyword_inner)
+  (keyword_intersect)
+  (keyword_interval)
+  (keyword_is)
+  (keyword_join)
+  (keyword_last)
+  (keyword_lateral)
+  (keyword_left)
+  (keyword_like)
+  (keyword_limit)
+  (keyword_materialized)
+  (keyword_natural)
+  (keyword_no)
+  (keyword_not)
+  (keyword_null)
+  (keyword_nulls)
+  (keyword_offset)
+  (keyword_on)
+  (keyword_or)
+  (keyword_order)
+  (keyword_others)
+  (keyword_outer)
+  (keyword_over)
+  (keyword_partition)
+  (keyword_preceding)
+  (keyword_precision)
+  (keyword_range)
+  (keyword_recursive)
+  (keyword_right)
+  (keyword_rlike)
+  (keyword_row)
+  (keyword_rows)
+  (keyword_select)
+  (keyword_then)
+  (keyword_time)
+  (keyword_timestamp)
+  (keyword_ties)
+  (keyword_true)
+  (keyword_unbounded)
+  (keyword_union)
+  (keyword_using)
+  (keyword_values)
+  (keyword_when)
+  (keyword_where)
+  (keyword_window)
+  (keyword_with)
+] @keyword
 
-(literal) @string
+(line_comment) @comment
+(block_comment) @comment
 
-;; SQL Keywords
-(keyword_in) @keyword.operator
-(keyword_and) @keyword.operator
-(keyword_or) @keyword.operator
-(keyword_not) @keyword.operator
-(keyword_by) @keyword.operator
-(keyword_on) @keyword.operator
-(keyword_select) @keyword
-(keyword_from) @keyword
-(keyword_where) @keyword
-(keyword_values) @keyword
+(number) @number
+(single_quoted_string) @string
+(escaped_string) @string.escape
+(dollar_quoted_string) @string
+(hex_binary_literal) @string.special
+(quoted_identifier) @variable
 
-;; SQL operators
-(is_not) @keyword.operator
-(not_like) @keyword.operator
-(similar_to) @keyword.operator
-(not_similar_to) @keyword.operator
-(distinct_from) @keyword.operator
-(not_distinct_from) @keyword.operator
-(not_in) @keyword.operator
-(keyword_between) @keyword.operator
+(function_call
+  function: (qualified_name
+    name: (name
+      (identifier) @function)))
 
-;; Function-related keywords
-(keyword_fn) @keyword
-(keyword_return) @keyword
+(relation
+  value: (qualified_name
+    name: (name
+      (identifier) @type)))
 
-;; Explicitly highlight function return kind
-(function_def
-  "->" @operator
-  return_kind: (keyword_val) @keyword.storage.type)
-(function_def
-  "->" @operator
-  return_kind: (keyword_expr) @keyword.storage.type)
-(function_def
-  "->" @operator
-  return_kind: (keyword_dataset) @keyword.storage.type)
+(alias name: (identifier) @variable.parameter)
+(alias name: (quoted_identifier) @variable.parameter)
+(relation_alias name: (identifier) @variable.parameter)
+(relation_alias name: (quoted_identifier) @variable.parameter)
+(common_table_expression name: (identifier) @type)
+(common_table_expression name: (quoted_identifier) @type)
 
-;; Function definition
-(function_def
-  name: (identifier) @function)
+(binding_reference
+  "$" @punctuation.special
+  root: (identifier) @variable.special)
+(binding_reference member: (identifier) @property)
+(json_access_expression member: (identifier) @property)
+(temporal_qualifier) @attribute
 
-;; Function parameter kinds
-(parameter_decl
-  kind: _ @keyword.storage.type)
+[
+  "+" "-" "*" "/" "%" "~"
+  "=" "!=" "<>" "<" "<=" ">" ">="
+  "@>" "<@" "->" "->>" "||" "|" "^" "&" "<<" ">>"
+  "::" "=>" ":="
+] @operator
 
-;; Conditionals
-(keyword_case) @conditional
-(keyword_when) @conditional
-(keyword_then) @conditional
-(keyword_else) @conditional
-(keyword_end) @conditional
-
-;; Variable references and parameters (including the three different forms: ?, $n, and @var)
-(parameter) @variable.special
-
-;; Table references with variable (like @data_0 in FROM @data_0)
-(table_ref_with_var "@" @variable.special)
-(table_ref_with_var ref: (object_reference name: (table_identifier) @variable.special.reference))
+["(" ")" "[" "]" "{" "}"] @punctuation.bracket
+["," "." ":" ";"] @punctuation.delimiter
 
 (identifier) @variable
-(field name: (identifier) @field)
 
-(pascal_identifier) @type
+; Combined Avenger structural captures.
+[
+  "avenger"
+  "import"
+  "sha256"
+  "as"
+  "chart"
+  "define"
+  "catalog"
+  "schema"
+  "table"
+  "param"
+  "store"
+  "selection"
+  "resource"
+  "theme"
+  "group"
+  "mark"
+  "transform"
+  "tool"
+  "widget"
+  "view"
+  "on"
+  "cell"
+  "plot"
+  "variable"
+  "part"
+  "level"
+  "adjust"
+  "derive"
+  "overlay"
+  "layer"
+  "when"
+  "field"
+  "row"
+  "key"
+  "fields"
+  "scale_edit"
+  "scale_hint"
+  "dimension"
+  "clause"
+  "equality"
+  "interval"
+  "slot"
+  "channel"
+  "export"
+  "match"
+  "set"
+  "at"
+  "current"
+  "start"
+  "replacing"
+  "scopes"
+  "from"
+  "nullable"
+  "private"
+  "public"
+  "value"
+  "dim"
+  "pattern"
+  "env"
+  "marks"
+  "subplot"
+  "subplots"
+  "legend"
+  "output"
+] @keyword
 
-;; Property type keywords with distinct stylings
-(expr_prop
-  (keyword_expr) @keyword.storage.type)
-(val_prop
-  (keyword_val) @keyword.storage.type)
-(dataset_prop
-  (keyword_dataset) @keyword.storage.type)
-(comp_prop
-  (keyword_comp) @keyword.storage.type)
+[
+  (theme_kind)
+  (state_kind)
+] @keyword
 
-;; Import statement
-(keyword_import) @keyword
-(import_path "from" @keyword)
-(import_item "as" @keyword)
+(version_directive version: (number) @number)
+(import_statement path: (single_quoted_string) @string)
+(import_statement hash: (single_quoted_string) @string)
+(import_statement alias: (identifier) @variable)
+(chart_declaration kind: (identifier) @type)
+(definition_declaration kind: (definition_kind) @keyword)
+(definition_declaration name: (identifier) @type)
+(catalog_declaration kind: (identifier) @type)
+(schema_declaration kind: (identifier) @type)
+(table_declaration kind: (identifier) @type)
+(as_clause name: (identifier) @variable)
+(resource_declaration kind: (identifier) @type)
+(mark_declaration kind: (identifier) @type)
+(transform_declaration kind: (identifier) @type)
+(tool_declaration kind: (identifier) @type)
+(widget_declaration kind: (identifier) @type)
+(view_declaration kind: (identifier) @type)
+(event_declaration kind: (identifier) @type)
+(cell_declaration kind: (identifier) @type)
+(plot_declaration kind: (identifier) @type)
+(variable_declaration kind: (identifier) @type)
+(adjust_declaration kind: (identifier) @type)
+(derive_declaration kind: (identifier) @type)
+(action_block kind: (identifier) @type)
+(part_declaration name: (identifier) @variable)
+(layer_declaration name: (identifier) @variable)
+(match_declaration name: (identifier) @variable)
+(match_arm name: (identifier) @constant)
+(field_declaration name: (identifier) @property)
+(slot_declaration kind: (slot_shape) @type.builtin)
+(channel_parameter_declaration name: (identifier) @variable.parameter)
+(output_declaration name: (identifier) @variable)
+(export_declaration source: (qualified_name) @variable)
+(export_declaration alias: (identifier) @variable)
+(set_action target: (qualified_name) @variable)
+(property name: (property_name) @property)
+(param_type_property name: (property_name) @property)
+(block_splice name: (property_name) @variable.parameter)
+(typed_object kind: (identifier) @type)
+(typed_reference kind: (reference_kind) @type)
+(typed_reference target: (qualified_name) @variable)
+(environment_value name: (single_quoted_string) @string)
+(none_value) @constant
 
-;; Type annotation
-(type) @type.annotation
+((line_comment) @comment @comment.doc
+  (#match? @comment.doc "^-- \\|"))
 
-;; Property qualifier
-(prop_qualifier) @keyword.directive
-
-;; Operators
-(op_other) @operator
-(op_unary_other) @operator
-(bang) @operator
-(binary_expression operator: _ @operator)
-
-;; Punctuation
-["(" ")" "{" "}" "[" "]" "<" ">"] @punctuation.bracket
-[";" "," "." ":"] @punctuation.delimiter
-
-;; Assignment operator
-":=" @operator
-
-;; Cast operator
-"::" @operator
+(primitive_arrow_type) @type.builtin
+(arrow_type_constructor) @type.builtin
+(arrow_time_unit) @constant
+(arrow_interval_unit) @constant
+(arrow_unsigned_integer (number) @number)
+(arrow_signed_integer (number) @number)
+(arrow_struct_field name: (single_quoted_string) @string)

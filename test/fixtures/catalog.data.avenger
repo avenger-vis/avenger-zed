@@ -1,0 +1,9 @@
+avenger 1;
+
+catalog memory as local {
+  schema tables as vega {
+    table inline as movies {
+      values: [{ title: 'A'; rating: 8.5; }];
+    }
+  }
+}

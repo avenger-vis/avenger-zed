@@ -1,0 +1,11 @@
+avenger 1;
+
+define mark badge {
+  slot number as radius { default: 4; }
+  output bounds: span(0, $radius);
+  private group as implementation {
+    public mark symbol as points {
+      size: $radius;
+    }
+  }
+}

@@ -1,11 +1,11 @@
 id = "avenger"
 name = "Avenger"
-version = "0.0.1"
+version = "0.1.0"
 schema_version = 1
-authors = ["Your Name <you@example.com>"]
-description = "Avenger Language Support"
-repository = "https://github.com/your-name/my-zed-extension"
+authors = ["Jon Mease and Avenger contributors"]
+description = "Avenger visualization language support"
+repository = "https://github.com/avenger-vis/avenger-zed"
 
 [grammars.avenger]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger"
-rev = "2661a76a1796b34b0c16afb5fed35cc81e45b807"
+rev = "df950f49ade87700a8fb1823f15def56ba24a70a"

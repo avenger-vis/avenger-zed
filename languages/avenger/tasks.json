@@ -1,0 +1,24 @@
+[
+  {
+    "label": "Avenger: Watch $ZED_RELATIVE_FILE",
+    "command": "cargo",
+    "args": [
+      "run",
+      "--release",
+      "-p",
+      "avenger-lang-cli",
+      "--bin",
+      "avenger",
+      "--",
+      "watch",
+      "$ZED_FILE"
+    ],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "tags": ["avenger-watch"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": true,
+    "reveal": "no_focus",
+    "hide": "never",
+    "save": "all"
+  }
+]

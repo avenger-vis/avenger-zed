@@ -52,6 +52,10 @@ jobs:
         run: pnpm sync:queries -- --grammar-root ../tree-sitter-avenger --check
         working-directory: avenger-zed
 
+      - name: Audit query node contract
+        run: pnpm check:query-contract -- --grammar-root ../tree-sitter-avenger
+        working-directory: avenger-zed
+
       - name: Test queries and capture baselines
         run: pnpm test:queries -- --grammar-root ../tree-sitter-avenger
         working-directory: avenger-zed

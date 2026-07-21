@@ -42,6 +42,7 @@ const required = [
   "languages/avenger/outline.scm",
   "languages/avenger/runnables.scm",
   "languages/avenger/tasks.json",
+  "scripts/check_query_contract.mjs",
   "scripts/measure_queries.mjs",
   "test/metrics/query-performance-macos-arm64-2026-07-21.json",
 ];

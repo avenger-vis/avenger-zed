@@ -68,14 +68,16 @@ The tested toolchain is Node 20.19.6, pnpm 11.9.0, and Tree-sitter CLI 0.26.3.
 pnpm install --frozen-lockfile
 pnpm test
 pnpm sync:queries -- --grammar-root ../tree-sitter-avenger --check
+pnpm check:query-contract -- --grammar-root ../tree-sitter-avenger
 pnpm test:queries -- --grammar-root ../tree-sitter-avenger
 pnpm measure:queries -- --grammar-root ../tree-sitter-avenger
 ```
 
 `pnpm test` audits the extension package, verifies byte-identical copies of the
 grammar-owned highlight/bracket/indent queries, compiles all five extension
-queries, compares outline/runnable baselines, exercises recovery mutations,
-and runs every query over the pinned compiler-valid corpus.
+queries, audits their node/field references against `node-types.json`, compares
+outline/runnable baselines, exercises recovery mutations, and runs every query
+over the pinned compiler-valid corpus.
 
 The performance probe reports warmed median CLI timings for deterministic
 minimal, representative, and large charts. It includes process startup and is

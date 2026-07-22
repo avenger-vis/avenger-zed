@@ -10,10 +10,46 @@ Version 0.1 provides:
 - bracket matching, quote/bracket auto-closing, comment toggling, and
   indentation;
 - a structural outline for roots and useful named declarations;
-- a chart-root gutter action for the native hot-reload workflow.
+- a chart-root gutter action for the native hot-reload workflow;
+- semantic diagnostics and document symbols from the native Avenger language
+  server.
 
 Tree-sitter deliberately recovers through partially typed source. The strict
 Avenger compiler remains the authority for validity and diagnostics.
+
+## Language server
+
+The extension starts `avenger lsp` over stdio. Launch selection is deterministic:
+
+1. use an explicit `lsp.avenger-lsp.binary.path` setting;
+2. in the Avenger monorepo, run the current source with `cargo run --release`;
+3. in an ordinary project, use `avenger` from the worktree shell `PATH`;
+4. otherwise show an actionable configuration/install error.
+
+The command inherits the worktree shell environment. Explicit environment
+entries override inherited values, and explicit arguments replace the default
+argument list. Initialization options and workspace settings are forwarded
+unchanged. For example:
+
+```json
+{
+  "lsp": {
+    "avenger-lsp": {
+      "binary": {
+        "path": "/absolute/path/to/avenger",
+        "arguments": ["lsp"],
+        "env": { "RUST_LOG": "avenger_lsp=debug" }
+      },
+      "initialization_options": {},
+      "settings": {}
+    }
+  }
+}
+```
+
+The extension does not download or bundle a server. In the source monorepo it
+uses `cargo run --release -p avenger-lang-cli --bin avenger -- lsp`; installed
+use requires an `avenger` binary on `PATH` or the explicit setting above.
 
 ## Development watch workflow
 
@@ -61,12 +97,16 @@ loading fails.
 
 ## Development and checks
 
-The extension has no Rust/Wasm runtime. Node and pnpm are test tooling only.
-The tested toolchain is Node 20.19.6, pnpm 11.9.0, and Tree-sitter CLI 0.26.3.
+The extension's small Rust/Wasm runtime only selects and configures the native
+language-server process. Node and pnpm are query/package test tooling. The
+tested toolchain is Node 20.19.6, pnpm 11.9.0, Tree-sitter CLI 0.26.3, and the
+current stable Rust `wasm32-wasip1` target.
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm test
+cargo test --locked
+cargo check --locked --target wasm32-wasip1
 pnpm sync:queries -- --grammar-root ../tree-sitter-avenger --check
 pnpm check:query-contract -- --grammar-root ../tree-sitter-avenger
 pnpm test:queries -- --grammar-root ../tree-sitter-avenger
@@ -134,19 +174,22 @@ To upgrade the grammar:
 - **Multiline SQL indentation differs from structural blocks:** syntax
   highlighting remains correct, but v0.1 intentionally avoids broad SQL
   continuation captures that can double-indent surrounding DSL structure.
+- **Language server not found:** install `avenger` on the worktree shell
+  `PATH`, open the Avenger source monorepo with Cargo available, or configure
+  `lsp.avenger-lsp.binary.path` explicitly.
 
-## Current limitations and future LSP
+## Current language-server scope
 
-This milestone does not include semantic diagnostics, completion, hover,
-navigation, rename, formatting, semantic tokens, inspector integration, or
-automatic CLI installation. Unbound charts use their coordinate kind as the
-Tree-sitter outline name; a future LSP can provide a semantic filename-based
-name.
+The first native server milestone includes tolerant and semantic diagnostics,
+incremental document synchronization, workspace watching, and document
+symbols. Completion, hover, navigation, rename, formatting, semantic tokens,
+inspector integration, and automatic CLI installation remain future work.
+Unbound charts use their coordinate kind as the Tree-sitter outline name.
 
-When the Avenger LSP is implemented, this extension may gain only the minimum
-Rust/Wasm glue needed to locate and launch `avenger lsp`. Language semantics
-and inspector connections remain in the Avenger CLI/language crates rather
-than being duplicated in the Zed extension.
+The Rust/Wasm glue is deliberately limited to locating and launching
+`avenger lsp` and forwarding Zed settings. Language semantics and future
+inspector connections remain in the Avenger CLI/language crates rather than
+being duplicated in the Zed extension.
 
 ## Compatibility and license
 

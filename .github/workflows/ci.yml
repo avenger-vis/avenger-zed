@@ -40,12 +40,25 @@ jobs:
           cache: pnpm
           cache-dependency-path: avenger-zed/pnpm-lock.yaml
 
+      - name: Set up Rust extension target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+
       - name: Install test tools
         run: pnpm install --frozen-lockfile
         working-directory: avenger-zed
 
       - name: Audit extension package
         run: pnpm check
+        working-directory: avenger-zed
+
+      - name: Test Rust LSP adapter
+        run: cargo test --locked
+        working-directory: avenger-zed
+
+      - name: Build Rust LSP adapter for Zed
+        run: cargo check --locked --target wasm32-wasip1
         working-directory: avenger-zed
 
       - name: Verify grammar-owned query copies

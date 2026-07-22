@@ -16,6 +16,10 @@ for (const expected of [
   'repository = "https://github.com/avenger-vis/avenger-zed"',
   '[grammars.avenger]',
   'repository = "https://github.com/avenger-vis/tree-sitter-avenger"',
+  '[language_servers.avenger-lsp]',
+  'name = "Avenger Language Server"',
+  'languages = ["Avenger"]',
+  'language_ids = { Avenger = "avenger" }',
 ]) assert(manifest.includes(expected), `extension.toml is missing ${expected}`);
 assert(/^rev = "[0-9a-f]{40}"$/m.test(manifest), "grammar revision must be a full SHA");
 assert(!manifest.includes("file://"), "publishable manifest must not use file://");
@@ -37,6 +41,9 @@ const required = [
   "LICENSE",
   "PUBLISHING.md",
   "README.md",
+  "Cargo.toml",
+  "Cargo.lock",
+  "src/lib.rs",
   "languages/avenger/highlights.scm",
   "languages/avenger/brackets.scm",
   "languages/avenger/indents.scm",
@@ -48,8 +55,20 @@ const required = [
   "test/metrics/query-performance-macos-arm64-2026-07-21.json",
 ];
 for (const path of required) assert(existsSync(resolve(root, path)), `missing ${path}`);
-for (const forbidden of ["Cargo.toml", "Cargo.lock", "src/lib.rs", "extension.wasm"]) {
-  assert(!existsSync(resolve(root, forbidden)), `configuration-only extension must not contain ${forbidden}`);
+assert(!existsSync(resolve(root, "extension.wasm")), "compiled extension.wasm must not be committed");
+const cargo = read("Cargo.toml");
+assert(cargo.includes('crate-type = ["cdylib", "rlib"]'), "extension must build as a cdylib");
+assert(cargo.includes('zed_extension_api = "=0.7.0"'), "Zed extension API must be exactly pinned");
+const adapter = read("src/lib.rs");
+for (const expected of [
+  "language_server_command",
+  "LspSettings::for_worktree",
+  'worktree.which("cargo")',
+  'worktree.which("avenger")',
+  "worktree.shell_env()",
+]) assert(adapter.includes(expected), `LSP adapter is missing ${expected}`);
+for (const forbidden of ["download_file(", "latest_github_release(", "label_for_completion", "label_for_symbol"]) {
+  assert(!adapter.includes(forbidden), `LSP adapter contains out-of-scope behavior ${forbidden}`);
 }
 assert(read(".gitignore").split(/\r?\n/).includes("grammars/"), "Zed's generated grammar checkout must be ignored");
 assert(execFileSync("git", ["ls-files", "grammars"], { cwd: root, encoding: "utf8" }).trim() === "",

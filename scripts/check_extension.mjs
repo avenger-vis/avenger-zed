@@ -55,7 +55,8 @@ const required = [
   "test/metrics/query-performance-macos-arm64-2026-07-21.json",
 ];
 for (const path of required) assert(existsSync(resolve(root, path)), `missing ${path}`);
-assert(!existsSync(resolve(root, "extension.wasm")), "compiled extension.wasm must not be committed");
+assert(execFileSync("git", ["ls-files", "extension.wasm"], { cwd: root, encoding: "utf8" }).trim() === "",
+  "compiled extension.wasm must not be committed");
 const cargo = read("Cargo.toml");
 assert(cargo.includes('crate-type = ["cdylib", "rlib"]'), "extension must build as a cdylib");
 assert(cargo.includes('zed_extension_api = "=0.7.0"'), "Zed extension API must be exactly pinned");
@@ -115,6 +116,6 @@ const walk = directory => readdirSync(directory).flatMap(name => {
     : [path];
 });
 const localPaths = walk(root);
-assert(!localPaths.some(path => path.endsWith("extension.wasm")), "extension.wasm must not be committed");
+assert(read(".gitignore").split(/\r?\n/).includes("extension.wasm"), "Zed's generated extension.wasm must be ignored");
 
 console.log("extension package contract is valid");

@@ -12,7 +12,8 @@ Version 0.1 provides:
 - a structural outline for roots and useful named declarations;
 - a chart-root gutter action for the native hot-reload workflow;
 - native diagnostics, symbols, completion, hover, navigation, rename,
-  formatting, semantic tokens, and conservative quick fixes.
+  formatting, semantic tokens, conservative quick fixes, definition
+  refactors, and remote-import pinning.
 
 Tree-sitter deliberately recovers through partially typed source. The strict
 Avenger compiler remains the authority for validity and diagnostics.
@@ -50,6 +51,9 @@ unchanged. For example:
 The extension does not download or bundle a server. In the source monorepo it
 uses `cargo run --release -p avenger-lang-cli --bin avenger -- lsp`; installed
 use requires an `avenger` binary on `PATH` or the explicit setting above.
+Optional server bounds can be supplied as binary arguments after `lsp`, for
+example `["lsp", "--max-document-mb", "4", "--max-concurrent-requests", "8"]`.
+Run `avenger lsp --help` for the complete, version-matched list.
 
 ### Semantic highlighting and formatting
 
@@ -81,7 +85,12 @@ Rename and quick fixes use versioned document edits. A rename is offered only
 for authored symbols whose reference set is complete and collision-free. The
 initial quick fixes cover close property-name corrections, a missing `as`
 binder, ambiguous SQL-column qualification, and an unambiguous typed parameter
-declaration.
+declaration. **Inline imported definition** uses the compiler's canonical
+single-instance expansion. **Extract group as definition** creates a sibling
+mark-definition file only when Zed advertises create-file edits and the target
+does not exist. **Fetch and pin remote import** is lazy: selecting it fetches a
+valid definition and inserts its exact SHA-256; normal language analysis keeps
+HTTP disabled.
 
 ## Development watch workflow
 
@@ -209,6 +218,15 @@ To upgrade the grammar:
 - **Language server not found:** install `avenger` on the worktree shell
   `PATH`, open the Avenger source monorepo with Cargo available, or configure
   `lsp.avenger-lsp.binary.path` explicitly.
+- **No extract-definition action:** select a named `group`; unsupported free
+  references or an existing sibling `<name>.mark.avenger` intentionally
+  suppress the refactor.
+- **No pin-import action:** the import must be an unpinned `http://` or
+  `https://` definition and the Zed client must support lazy code-action edit
+  resolution. Network access occurs only after the action is selected.
+- **Large document or resource-limit warning:** inspect the language-server
+  log and, if the project is trusted, raise the relevant `avenger lsp` limit in
+  `binary.arguments` rather than disabling all bounds.
 
 ## Current language-server scope
 
@@ -216,8 +234,9 @@ The native static server includes tolerant and semantic diagnostics,
 incremental document synchronization, workspace watching, document symbols,
 structural and DataFusion-backed SQL completion, hover, authored navigation and
 references, conservative rename, strict-valid formatting, semantic tokens, and
-local quick fixes. Live inspector enrichment and automatic CLI installation
-remain future work. Unbound charts use their coordinate kind as the Tree-sitter
+local quick fixes, definition inline/extract refactors, and lazy import
+pinning. Live inspector enrichment and automatic CLI installation remain
+future work. Unbound charts use their coordinate kind as the Tree-sitter
 outline name.
 
 The Rust/Wasm glue is deliberately limited to locating and launching

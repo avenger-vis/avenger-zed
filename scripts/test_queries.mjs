@@ -116,8 +116,20 @@ const recoveryMutations = new Map([
   ["missing-bracket", "avenger 1;\nchart cartesian as recovery {\n  broken: [1, 2;\n  mark symbol as after_error {}\n}\n"],
   ["unterminated-string", "avenger 1;\nchart cartesian as recovery {\n  broken: 'unterminated;\n  mark symbol as after_error {}\n}\n"],
   ["truncated-binding", "avenger 1;\nchart cartesian as recovery {\n  broken: $component.;\n  mark symbol as after_error {}\n}\n"],
-  ["truncated-arrow-type", "avenger 1;\nchart cartesian as recovery {\n  param as broken { type: struct(field('x', int64); }\n  mark symbol as after_error {}\n}\n"],
+  ["truncated-arrow-type", "avenger 1;\nchart cartesian as recovery {\n  param struct(field(int64, 'x') as broken { value: null; }\n  mark symbol as after_error {}\n}\n"],
+  ["partial-param-header", "avenger 1;\nchart cartesian as recovery {\n  param float64 as\n  mark symbol as after_error {}\n}\n"],
+  ["partial-container-header", "avenger 1;\nchart cartesian as recovery {\n  container group as\n  mark symbol as after_error {}\n}\n"],
+  ["partial-field-header", "avenger 1;\nchart cartesian as recovery {\n  param store as rows { field int64; }\n  mark symbol as after_error {}\n}\n"],
+  ["partial-output-alias", "avenger 1;\nchart cartesian as recovery {\n  output coalesce(1, 2) as;\n  mark symbol as after_error {}\n}\n"],
+  ["partial-slot-header", "avenger 1;\nchart cartesian as recovery {\n  slot channel;\n  mark symbol as after_error {}\n}\n"],
   ["truncated-sql", "avenger 1;\nchart cartesian as recovery {\n  sql: FROM vega.movies SELECT (rating;\n  mark symbol as after_error {}\n}\n"],
+]);
+const declarationHeaderRecoveries = new Set([
+  "partial-param-header",
+  "partial-container-header",
+  "partial-field-header",
+  "partial-output-alias",
+  "partial-slot-header",
 ]);
 try {
   for (const [name, source] of recoveryMutations) {
@@ -125,7 +137,13 @@ try {
     writeFileSync(path, source);
     run(["parse", "--no-ranges", path], 1);
     for (const query of ["highlights", "brackets", "indents", "outline", "runnables"]) {
-      run(["query", "--captures", resolve(queryRoot, `${query}.scm`), path]);
+      const captures = run(["query", "--captures", resolve(queryRoot, `${query}.scm`), path]);
+      if (declarationHeaderRecoveries.has(name) && query === "outline" && !captures.includes("after_error")) {
+        throw new Error(`${name}: outline did not recover to the declaration after the error`);
+      }
+      if (declarationHeaderRecoveries.has(name) && query === "runnables" && !captures.includes(" - run,")) {
+        throw new Error(`${name}: runnable did not survive declaration recovery`);
+      }
     }
   }
 } finally {

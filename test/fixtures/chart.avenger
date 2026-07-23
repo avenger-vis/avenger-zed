@@ -3,12 +3,11 @@ import './catalog.data.avenger' as data;
 
 -- | Interactive chart fixture.
 chart cartesian as values {
-  param as width {
-    type: float64;
-    default: 640;
+  param float64 as width {
+    value: 640;
   }
-  store as rows {
-    schema: struct(field('x', float64));
+  param store as rows {
+    field float64 x;
   }
   mark symbol as points {
     x: coalesce($width@start, 0);

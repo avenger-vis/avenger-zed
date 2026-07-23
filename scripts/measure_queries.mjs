@@ -39,7 +39,7 @@ const chart = count => {
   return [
     "avenger 1;",
     "chart cartesian as query_performance {",
-    "  param as width { type: float64; default: 640; }",
+    "  param float64 as width { value: 640; }",
     marks,
     "}",
     "",

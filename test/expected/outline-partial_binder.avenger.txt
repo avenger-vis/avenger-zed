@@ -1,4 +1,4 @@
-item 2:0-9:1 "chart cartesian as recovery {\n  param as {\n    type: float64;\n  }\n  mark symbol as after_error {\n    x: 2;\n  }\n}"
+item 2:0-9:1 "chart cartesian as recovery {\n  param float64 as {\n    value: 1;\n  }\n  mark symbol as after_error {\n    x: 2;\n  }\n}"
 context 2:0-2:5 "chart"
 context.extra 2:6-2:15 "cartesian"
 name 2:19-2:27 "recovery"

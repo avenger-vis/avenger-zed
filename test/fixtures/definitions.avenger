@@ -3,9 +3,9 @@ avenger 1;
 -- | Reusable badge mark.
 define mark badge {
   -- | Radius exposed by the definition.
-  slot number as radius { default: 4; }
-  output bounds: span(0, $radius);
-  private group as implementation {
+  slot number radius { default: 4; }
+  output span(0, $radius) as bounds;
+  private container group as implementation {
     public mark symbol as points {
       size: $radius;
     }

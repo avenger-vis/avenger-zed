@@ -5,7 +5,7 @@ chart custom as demo {
   public param store as rows { field int64 id; }
   param selection as brush {}
   resource tiles as osm {}
-  container group as panel {}
+  mark group as panel {}
   mark symbol as points {}
   mark line {}
   transform filter as visible {}
@@ -24,7 +24,7 @@ chart custom as demo {
   adjust expr {}
   derive aggregate as totals {}
   derive aggregate {}
-  container overlay as annotation {}
+  overlay: { mark group as annotation {} }
   output coalesce($threshold, 0) as count;
   export panel.points as exported_points;
   part title {}

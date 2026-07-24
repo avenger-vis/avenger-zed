@@ -87,7 +87,7 @@ initial quick fixes cover close property-name corrections, missing declaration
 binders, ambiguous SQL-column qualification, and unambiguous typed parameter
 declarations such as `param float64 as width { value: 640; }`. **Inline
 imported definition** uses the compiler's canonical
-single-instance expansion. **Extract container group as definition** creates a sibling
+single-instance expansion. **Extract mark group as definition** creates a sibling
 mark-definition file only when Zed advertises create-file edits and the target
 does not exist. **Fetch and pin remote import** is lazy: selecting it fetches a
 valid definition and inserts its exact SHA-256; normal language analysis keeps
@@ -181,10 +181,10 @@ second SQL grammar and this extension does not claim ordinary `.sql` files.
 
 Pinned compatibility inputs:
 
-- combined grammar: `8bea38a3ecda4ba946909bb9e0fae1c6164d746c`;
+- combined grammar: `7c6db97597db298af9f0a2c62f5b0ed6f0da0311`;
 - SQL grammar/base: `9ed9a6d5badfd34ec03e69c8cc5b3ec67c9d1553`;
 - compiler contract represented by the grammar fixtures:
-  `a64791df3b7fc732afeb925112cc681938d6b6a3`.
+  `6b62b220c8f00e37c8a1228cb9ca3db7ec6871bb`.
 
 `tree-sitter-avenger` owns `highlights.scm`, `brackets.scm`, and
 `indents.scm`; synchronized copies here must remain byte-identical.
@@ -219,7 +219,7 @@ To upgrade the grammar:
 - **Language server not found:** install `avenger` on the worktree shell
   `PATH`, open the Avenger source monorepo with Cargo available, or configure
   `lsp.avenger-lsp.binary.path` explicitly.
-- **No extract-definition action:** select a named `container group`; unsupported free
+- **No extract-definition action:** select a named `mark group`; unsupported free
   references or an existing sibling `<name>.mark.avenger` intentionally
   suppress the refactor.
 - **No pin-import action:** the import must be an unpinned `http://` or

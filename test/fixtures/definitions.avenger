@@ -5,7 +5,7 @@ define mark badge {
   -- | Radius exposed by the definition.
   slot number radius { default: 4; }
   output span(0, $radius) as bounds;
-  private container group as implementation {
+  private mark group as implementation {
     public mark symbol as points {
       size: $radius;
     }

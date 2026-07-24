@@ -118,7 +118,7 @@ const recoveryMutations = new Map([
   ["truncated-binding", "avenger 1;\nchart cartesian as recovery {\n  broken: $component.;\n  mark symbol as after_error {}\n}\n"],
   ["truncated-arrow-type", "avenger 1;\nchart cartesian as recovery {\n  param struct(field(int64, 'x') as broken { value: null; }\n  mark symbol as after_error {}\n}\n"],
   ["partial-param-header", "avenger 1;\nchart cartesian as recovery {\n  param float64 as\n  mark symbol as after_error {}\n}\n"],
-  ["partial-container-header", "avenger 1;\nchart cartesian as recovery {\n  container group as\n  mark symbol as after_error {}\n}\n"],
+  ["partial-mark-group-header", "avenger 1;\nchart cartesian as recovery {\n  mark group as\n  mark symbol as after_error {}\n}\n"],
   ["partial-field-header", "avenger 1;\nchart cartesian as recovery {\n  param store as rows { field int64; }\n  mark symbol as after_error {}\n}\n"],
   ["partial-output-alias", "avenger 1;\nchart cartesian as recovery {\n  output coalesce(1, 2) as;\n  mark symbol as after_error {}\n}\n"],
   ["partial-slot-header", "avenger 1;\nchart cartesian as recovery {\n  slot channel;\n  mark symbol as after_error {}\n}\n"],
@@ -126,7 +126,7 @@ const recoveryMutations = new Map([
 ]);
 const declarationHeaderRecoveries = new Set([
   "partial-param-header",
-  "partial-container-header",
+  "partial-mark-group-header",
   "partial-field-header",
   "partial-output-alias",
   "partial-slot-header",

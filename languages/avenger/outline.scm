@@ -55,7 +55,6 @@
 ((resource_declaration "resource" @context kind: (identifier) @context.extra (as_clause name: (identifier) @name)) @item (#match? @name ".+"))
 
 ; Bound chart structure. Anonymous declarations intentionally do not match.
-((container_declaration "container" @context kind: (container_kind) @context.extra (as_clause name: (identifier) @name)) @item (#match? @name ".+"))
 ((mark_declaration "mark" @context kind: (identifier) @context.extra (as_clause name: (identifier) @name)) @item (#match? @name ".+"))
 ((transform_declaration "transform" @context kind: (identifier) @context.extra (as_clause name: (identifier) @name)) @item (#match? @name ".+"))
 ((tool_declaration "tool" @context kind: (identifier) @context.extra (as_clause name: (identifier) @name)) @item (#match? @name ".+"))

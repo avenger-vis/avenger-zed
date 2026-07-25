@@ -1,8 +1,8 @@
 avenger 1;
-import './catalog.data.avenger' as data;
+import { local as data } from './data.avenger';
 
 -- | Interactive chart fixture.
-chart cartesian as values {
+export chart cartesian as values {
   param float64 as width {
     value: 640;
   }

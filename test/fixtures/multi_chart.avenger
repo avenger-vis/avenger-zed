@@ -1,0 +1,9 @@
+avenger 1;
+
+chart cartesian as overview {
+  mark symbol as points {}
+}
+
+export chart polar as detail {
+  mark arc as wedges {}
+}

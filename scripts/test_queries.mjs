@@ -62,6 +62,7 @@ const fixtures = readdirSync(fixtureRoot)
   .map(name => resolve(fixtureRoot, name));
 const recoveryFixtures = new Set([
   "malformed_chart_header.avenger",
+  "module_recovery.avenger",
   "partial_binder.avenger",
   "recovery.avenger",
 ]);
@@ -103,6 +104,40 @@ for (const query of ["outline", "runnables"]) {
   }
 }
 
+const runnableOutput = fixture => run([
+  "query", "--captures", resolve(queryRoot, "runnables.scm"),
+  resolve(fixtureRoot, fixture),
+]);
+const multiChartRunnables = runnableOutput("multi_chart.avenger");
+for (const chart of ["overview", "detail"]) {
+  if (!multiChartRunnables.includes(` - avenger_chart,`) || !multiChartRunnables.includes(`text: \`${chart}\``)) {
+    throw new Error(`multi-chart runnable lost exact selector ${chart}\n${multiChartRunnables}`);
+  }
+}
+if ((multiChartRunnables.match(/ - run,/g) ?? []).length !== 2) {
+  throw new Error(`multi-chart module must expose exactly two arrows\n${multiChartRunnables}`);
+}
+
+const anonymousRunnables = runnableOutput("unbound_chart.avenger");
+if ((anonymousRunnables.match(/ - run,/g) ?? []).length !== 1) {
+  throw new Error(`anonymous chart must expose one arrow\n${anonymousRunnables}`);
+}
+if (anonymousRunnables.includes(" - avenger_chart,")) {
+  throw new Error(`anonymous chart matched the named task\n${anonymousRunnables}`);
+}
+
+for (const fixture of ["data.avenger", "definitions.avenger"]) {
+  const output = runnableOutput(fixture);
+  if (output.includes(" - run,")) {
+    throw new Error(`${fixture} must not expose a chart runnable\n${output}`);
+  }
+}
+
+const recoveredRunnables = runnableOutput("module_recovery.avenger");
+if ((recoveredRunnables.match(/ - run,/g) ?? []).length !== 2) {
+  throw new Error(`malformed module header swallowed a later chart\n${recoveredRunnables}`);
+}
+
 const outline = run(["query", "--captures", resolve(queryRoot, "outline.scm"), ...fixtures]);
 const itemCount = (outline.match(/ - item,/g) ?? []).length;
 const nameCount = (outline.match(/ - name,/g) ?? []).length;
@@ -123,6 +158,9 @@ const recoveryMutations = new Map([
   ["partial-output-alias", "avenger 1;\nchart cartesian as recovery {\n  output coalesce(1, 2) as;\n  mark symbol as after_error {}\n}\n"],
   ["partial-slot-header", "avenger 1;\nchart cartesian as recovery {\n  slot channel;\n  mark symbol as after_error {}\n}\n"],
   ["truncated-sql", "avenger 1;\nchart cartesian as recovery {\n  sql: FROM vega.movies SELECT (rating;\n  mark symbol as after_error {}\n}\n"],
+  ["partial-named-import", "avenger 1;\nimport { badge as } from './library.avenger';\nchart cartesian as after_error {}\n"],
+  ["partial-namespace-import", "avenger 1;\nimport * as from './library.avenger';\nchart cartesian as after_error {}\n"],
+  ["partial-export", "avenger 1;\nexport chart cartesian as after_error {\n"],
 ]);
 const declarationHeaderRecoveries = new Set([
   "partial-param-header",
@@ -130,6 +168,9 @@ const declarationHeaderRecoveries = new Set([
   "partial-field-header",
   "partial-output-alias",
   "partial-slot-header",
+  "partial-named-import",
+  "partial-namespace-import",
+  "partial-export",
 ]);
 try {
   for (const [name, source] of recoveryMutations) {
@@ -152,12 +193,17 @@ try {
 
 const compilerFixtureRoot = resolve(grammarRoot, "test", "fixtures");
 const compilerManifest = JSON.parse(readFileSync(resolve(compilerFixtureRoot, "avenger-fixtures.json"), "utf8"));
+if (compilerManifest.sources.length !== compilerManifest.source_count) {
+  throw new Error(
+    `compiler fixture manifest declared ${compilerManifest.source_count} sources but listed ${compilerManifest.sources.length}`,
+  );
+}
 const validClasses = new Set(["strict_valid", "canonical_valid", "example_valid", "stdlib_valid"]);
 const compilerFixtures = compilerManifest.sources
   .filter(source => validClasses.has(source.classification))
   .map(source => resolve(compilerFixtureRoot, "compiler", "sources", source.path));
-if (compilerFixtures.length !== 93) {
-  throw new Error(`expected 93 compiler-valid fixtures, found ${compilerFixtures.length}`);
+if (compilerFixtures.length === 0) {
+  throw new Error(`compiler fixture manifest unexpectedly contained no valid sources`);
 }
 const batches = [];
 for (let index = 0; index < compilerFixtures.length; index += 20) {

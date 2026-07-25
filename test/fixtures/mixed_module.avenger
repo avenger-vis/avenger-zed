@@ -1,0 +1,25 @@
+avenger 1;
+import { shared as local_shared } from './shared.avenger';
+import * as acme from 'native:acme';
+
+-- | Private implementation helper.
+define transform helper {
+  output value as value;
+}
+
+-- | Public reusable mark.
+export define mark badge {
+  mark group as implementation {
+    mark acme.symbol as points {}
+  }
+}
+
+export table memory as rows {}
+
+export chart acme.cartesian as overview {
+  mark badge as points {}
+}
+
+chart polar as detail {
+  mark arc as wedges {}
+}

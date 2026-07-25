@@ -22,8 +22,13 @@ for (const expected of [
   'language_ids = { Avenger = "avenger" }',
 ]) assert(manifest.includes(expected), `extension.toml is missing ${expected}`);
 assert(/^rev = "[0-9a-f]{40}"$/m.test(manifest), "grammar revision must be a full SHA");
+const grammarRevision = manifest.match(/^rev = "([0-9a-f]{40})"$/m)[1];
 assert(!manifest.includes("file://"), "publishable manifest must not use file://");
 assert((manifest.match(/^\[grammars\./gm) ?? []).length === 1, "register exactly one grammar");
+assert(
+  read(".github/workflows/ci.yml").includes(`ref: ${grammarRevision}`),
+  "CI grammar checkout must match extension.toml",
+);
 
 const config = read("languages/avenger/config.toml");
 for (const expected of [
@@ -53,8 +58,15 @@ const required = [
   "scripts/check_query_contract.mjs",
   "scripts/measure_queries.mjs",
   "test/metrics/query-performance-macos-arm64-2026-07-21.json",
+  "test/metrics/query-performance-macos-arm64-2026-07-24.json",
 ];
 for (const path of required) assert(existsSync(resolve(root, path)), `missing ${path}`);
+for (const name of readdirSync(resolve(root, "test/fixtures"))) {
+  assert(
+    !/\.(?:data|mark|tool|transform)\.avenger$/.test(name),
+    `fixture ${name} retains an obsolete role-specific suffix`,
+  );
+}
 assert(execFileSync("git", ["ls-files", "extension.wasm"], { cwd: root, encoding: "utf8" }).trim() === "",
   "compiled extension.wasm must not be committed");
 const cargo = read("Cargo.toml");
@@ -78,6 +90,7 @@ assert(execFileSync("git", ["ls-files", "grammars"], { cwd: root, encoding: "utf
 const captureContracts = new Map([
   ["highlights.scm", new Set([
     "attribute", "boolean", "comment", "comment.doc", "constant", "function", "keyword",
+    "namespace",
     "number", "operator", "property", "punctuation.bracket", "punctuation.delimiter",
     "punctuation.special", "string", "string.escape", "string.special", "type",
     "type.builtin", "variable", "variable.parameter", "variable.special",
@@ -85,28 +98,53 @@ const captureContracts = new Map([
   ["brackets.scm", new Set(["open", "close"])],
   ["indents.scm", new Set(["indent", "end"])],
   ["outline.scm", new Set(["item", "name", "context", "context.extra", "annotation"])],
-  ["runnables.scm", new Set(["run"])],
+  ["runnables.scm", new Set(["run", "avenger_chart"])],
 ]);
 for (const [name, allowed] of captureContracts) {
   const source = read(`languages/avenger/${name}`);
   for (const capture of source.matchAll(/@([A-Za-z_][A-Za-z0-9_.]*)/g)) {
+    if (capture[1].startsWith("_")) continue;
     assert(allowed.has(capture[1]), `${name} uses unsupported capture @${capture[1]}`);
   }
 }
 
 const tasks = JSON.parse(read("languages/avenger/tasks.json"));
-assert(Array.isArray(tasks) && tasks.length === 1, "tasks.json must contain one task");
-const task = tasks[0];
-assert(task.label === "Avenger: Watch $ZED_RELATIVE_FILE", "task label must identify the chart");
-assert(task.command === "cargo", "development task must use cargo");
-assert(JSON.stringify(task.args) === JSON.stringify([
-  "run", "--release", "-p", "avenger-lang-cli", "--bin", "avenger", "--", "watch", "$ZED_FILE",
-]), "development task arguments changed");
-assert(task.cwd === "$ZED_WORKTREE_ROOT", "task cwd must be the worktree root");
-assert(JSON.stringify(task.tags) === JSON.stringify(["avenger-watch"]), "task tag changed");
-assert(task.use_new_terminal === false && task.allow_concurrent_runs === true, "task rerun policy changed");
-assert(task.reveal === "no_focus" && task.hide === "never" && task.save === "all", "task UI/save policy changed");
-assert(read("languages/avenger/runnables.scm").includes("(#set! tag avenger-watch)"), "runnable tag changed");
+assert(Array.isArray(tasks) && tasks.length === 2, "tasks.json must contain named and anonymous tasks");
+const [namedTask, anonymousTask] = tasks;
+assert(
+  namedTask.label === "Avenger: Watch $ZED_CUSTOM_avenger_chart ($ZED_RELATIVE_FILE)",
+  "named task label must identify the exact chart",
+);
+assert(namedTask.command === "cargo", "named development task must use cargo");
+assert(JSON.stringify(namedTask.args) === JSON.stringify([
+  "run", "--release", "-p", "avenger-lang-cli", "--bin", "avenger", "--",
+  "watch", "$ZED_FILE", "--chart", "$ZED_CUSTOM_avenger_chart",
+]), "named development task arguments changed");
+assert(JSON.stringify(namedTask.tags) === JSON.stringify(["avenger-watch-named"]), "named task tag changed");
+
+assert(
+  anonymousTask.label === "Avenger: Watch anonymous chart ($ZED_RELATIVE_FILE)",
+  "anonymous task label changed",
+);
+assert(anonymousTask.command === "cargo", "anonymous development task must use cargo");
+assert(JSON.stringify(anonymousTask.args) === JSON.stringify([
+  "run", "--release", "-p", "avenger-lang-cli", "--bin", "avenger", "--",
+  "watch", "$ZED_FILE",
+]), "anonymous development task arguments changed");
+assert(
+  JSON.stringify(anonymousTask.tags) === JSON.stringify(["avenger-watch-anonymous"]),
+  "anonymous task tag changed",
+);
+
+for (const task of tasks) {
+  assert(task.cwd === "$ZED_WORKTREE_ROOT", "task cwd must be the worktree root");
+  assert(task.use_new_terminal === false && task.allow_concurrent_runs === true, "task rerun policy changed");
+  assert(task.reveal === "no_focus" && task.hide === "never" && task.save === "all", "task UI/save policy changed");
+}
+const runnables = read("languages/avenger/runnables.scm");
+assert(runnables.includes("(#set! tag avenger-watch-named)"), "named runnable tag changed");
+assert(runnables.includes("(#set! tag avenger-watch-anonymous)"), "anonymous runnable tag changed");
+assert(runnables.includes("@avenger_chart"), "named runnable must expose the chart binder");
 
 const skippedDirectories = new Set([".git", ".tmp", "grammars", "node_modules"]);
 const walk = directory => readdirSync(directory).flatMap(name => {

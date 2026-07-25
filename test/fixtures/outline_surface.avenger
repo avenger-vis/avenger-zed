@@ -1,12 +1,13 @@
 avenger 1;
+import * as acme from 'native:acme';
 
-chart custom as demo {
+export chart acme.custom as demo {
   private param float64 as threshold { value: 1; }
   public param store as rows { field int64 id; }
   param selection as brush {}
   resource tiles as osm {}
   mark group as panel {}
-  mark symbol as points {}
+  mark acme.symbol as points {}
   mark line {}
   transform filter as visible {}
   transform formula {}

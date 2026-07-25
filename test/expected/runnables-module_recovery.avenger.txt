@@ -1,0 +1,6 @@
+run 3:0-3:5 "chart"
+_avenger_kind 3:6-3:15 "cartesian"
+avenger_chart 3:19-3:24 "first"
+run 4:0-4:5 "chart"
+_avenger_kind 4:6-4:11 "polar"
+avenger_chart 4:15-4:21 "second"

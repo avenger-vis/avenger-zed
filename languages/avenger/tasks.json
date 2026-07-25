@@ -1,6 +1,30 @@
 [
   {
-    "label": "Avenger: Watch $ZED_RELATIVE_FILE",
+    "label": "Avenger: Watch $ZED_CUSTOM_avenger_chart ($ZED_RELATIVE_FILE)",
+    "command": "cargo",
+    "args": [
+      "run",
+      "--release",
+      "-p",
+      "avenger-lang-cli",
+      "--bin",
+      "avenger",
+      "--",
+      "watch",
+      "$ZED_FILE",
+      "--chart",
+      "$ZED_CUSTOM_avenger_chart"
+    ],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "tags": ["avenger-watch-named"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": true,
+    "reveal": "no_focus",
+    "hide": "never",
+    "save": "all"
+  },
+  {
+    "label": "Avenger: Watch anonymous chart ($ZED_RELATIVE_FILE)",
     "command": "cargo",
     "args": [
       "run",
@@ -14,7 +38,7 @@
       "$ZED_FILE"
     ],
     "cwd": "$ZED_WORKTREE_ROOT",
-    "tags": ["avenger-watch"],
+    "tags": ["avenger-watch-anonymous"],
     "use_new_terminal": false,
     "allow_concurrent_runs": true,
     "reveal": "no_focus",

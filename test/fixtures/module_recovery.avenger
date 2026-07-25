@@ -1,0 +1,5 @@
+avenger 1;
+import badge from './library.avenger';
+
+chart cartesian as first {}
+chart polar as second {}

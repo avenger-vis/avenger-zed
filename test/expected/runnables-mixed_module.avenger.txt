@@ -1,0 +1,6 @@
+run 18:7-18:12 "chart"
+_avenger_kind 18:13-18:27 "acme.cartesian"
+avenger_chart 18:31-18:39 "overview"
+run 22:0-22:5 "chart"
+_avenger_kind 22:6-22:11 "polar"
+avenger_chart 22:15-22:21 "detail"

@@ -5,12 +5,14 @@ visualization language.
 
 Version 0.1 provides:
 
-- `.avenger` and `.data.avenger` detection;
+- uniform `.avenger` module detection, including ordinary dotted basenames;
 - combined Avenger DSL and SQL syntax highlighting;
 - bracket matching, quote/bracket auto-closing, comment toggling, and
   indentation;
-- a structural outline for roots and useful named declarations;
-- a chart-root gutter action for the native hot-reload workflow;
+- a source-ordered structural outline for private/exported module items and
+  useful nested declarations;
+- one exact chart gutter action per chart entrypoint for the native hot-reload
+  workflow;
 - native diagnostics, symbols, completion, hover, navigation, rename,
   formatting, semantic tokens, conservative quick fixes, definition
   refactors, and remote-import pinning.
@@ -41,7 +43,9 @@ unchanged. For example:
         "arguments": ["lsp"],
         "env": { "RUST_LOG": "avenger_lsp=debug" }
       },
-      "initialization_options": {},
+      "initialization_options": {
+        "ambientModules": ["/absolute/path/to/shared-data.avenger"]
+      },
       "settings": {}
     }
   }
@@ -100,7 +104,8 @@ the current workspace CLI in release mode so editor testing always exercises
 the source being developed:
 
 ```sh
-cargo run --release -p avenger-lang-cli --bin avenger -- watch /absolute/chart.avenger
+cargo run --release -p avenger-lang-cli --bin avenger -- \
+  watch /absolute/charts.avenger --chart overview
 ```
 
 Prerequisites:
@@ -110,21 +115,31 @@ Prerequisites:
 - an Avenger checkout containing the `avenger-lang-cli` workspace package;
 - the chart opened from that Avenger worktree.
 
-Open a chart and use the gutter run icon on its `chart` declaration. The task:
+Open a module and use the gutter run icon on the desired `chart` declaration.
+Named charts expose their exact binder to the task as
+`$ZED_CUSTOM_avenger_chart`; anonymous charts use the selector-free form. Zed
+preserves the Tree-sitter capture's case in custom variable names. The
+task:
 
 - saves all buffers before launch;
 - uses `$ZED_WORKTREE_ROOT` as the working directory;
-- passes `$ZED_FILE` as one argument after Cargo's `--` separator, including
-  when the path contains spaces;
+- passes `$ZED_FILE` as one argument after Cargo's `--` separator and, for a
+  named chart, passes the exact captured binder after `--chart`;
 - retains compiler/watch output without stealing editor focus;
 - cancels and replaces the same resolved chart task when rerun;
-- permits independently resolved tasks for different chart files.
+- permits independently resolved tasks for different charts in one module or
+  different files.
 
-A project can replace the language task with a task tagged `avenger-watch` in
-`.zed/tasks.json`. This is useful for a different Cargo workspace, wrapper
-script, environment, or an installed `avenger` binary. The shipped 0.1 task
-will remain source-workspace/Cargo based; automatic CLI installation and
-version management are outside this milestone.
+A project can replace the language tasks in `.zed/tasks.json` using the
+`avenger-watch-named` and `avenger-watch-anonymous` tags. This is useful for a
+different Cargo workspace, wrapper script, environment, or an installed
+`avenger` binary. The shipped 0.1 tasks remain source-workspace/Cargo based;
+automatic CLI installation and version management are outside this milestone.
+
+The language server also publishes editor-neutral chart code lenses carrying
+the module URI and exact optional chart selector. Tree-sitter gutter
+runnables remain Zed's primary launch surface and process manager; the two
+surfaces share chart identity but do not launch duplicate processes.
 
 ## Local extension installation
 
@@ -181,10 +196,10 @@ second SQL grammar and this extension does not claim ordinary `.sql` files.
 
 Pinned compatibility inputs:
 
-- combined grammar: `7c6db97597db298af9f0a2c62f5b0ed6f0da0311`;
+- combined grammar: `aa3029d64770c77803e32a271d0c0e6749d9a346`;
 - SQL grammar/base: `9ed9a6d5badfd34ec03e69c8cc5b3ec67c9d1553`;
 - compiler contract represented by the grammar fixtures:
-  `6b62b220c8f00e37c8a1228cb9ca3db7ec6871bb`.
+  `13dc389f499ec6ef3a0be7c2df26a905db33e3d9`.
 
 `tree-sitter-avenger` owns `highlights.scm`, `brackets.scm`, and
 `indents.scm`; synchronized copies here must remain byte-identical.
@@ -206,10 +221,12 @@ To upgrade the grammar:
 - **No Avenger language detection:** confirm the file ends in `.avenger` and
   rebuild/reinstall the dev extension. `.avgr` and `.sql` are intentionally not
   claimed.
-- **No gutter action:** the root must still parse as a chart with a coordinate
-  kind. Repair a malformed `chart` header first.
+- **No gutter action:** the declaration must still parse as a chart with a
+  coordinate kind. Repair a malformed `chart` header first. A named chart
+  uses its exact binder; an anonymous chart is valid only as the module's
+  singleton chart.
 - **Cargo cannot find a manifest/package:** open the chart from the Avenger
-  source worktree or provide an `avenger-watch` project task override.
+  source worktree or provide named/anonymous project task overrides.
 - **Grammar/query load error:** rebuild the extension, inspect `Zed.log`, and
   verify the manifest SHA is publicly fetchable. Generated `grammars/` content
   is a local Zed cache, not source.
@@ -220,7 +237,7 @@ To upgrade the grammar:
   `PATH`, open the Avenger source monorepo with Cargo available, or configure
   `lsp.avenger-lsp.binary.path` explicitly.
 - **No extract-definition action:** select a named `mark group`; unsupported free
-  references or an existing sibling `<name>.mark.avenger` intentionally
+  references or an existing sibling `<name>.avenger` intentionally
   suppress the refactor.
 - **No pin-import action:** the import must be an unpinned `http://` or
   `https://` definition and the Zed client must support lazy code-action edit
@@ -233,12 +250,12 @@ To upgrade the grammar:
 
 The native static server includes tolerant and semantic diagnostics,
 incremental document synchronization, workspace watching, document symbols,
-structural and DataFusion-backed SQL completion, hover, authored navigation and
-references, conservative rename, strict-valid formatting, semantic tokens, and
-local quick fixes, definition inline/extract refactors, and lazy import
-pinning. Live inspector enrichment and automatic CLI installation remain
-future work. Unbound charts use their coordinate kind as the Tree-sitter
-outline name.
+workspace symbols, structural and DataFusion-backed SQL completion, hover,
+authored navigation and references, conservative cross-module rename,
+strict-valid formatting, semantic tokens, chart code lenses, and local quick
+fixes, definition inline/extract refactors, and lazy import pinning. Live
+inspector enrichment and automatic CLI installation remain future work.
+Anonymous charts use their coordinate kind as the Tree-sitter outline name.
 
 The Rust/Wasm glue is deliberately limited to locating and launching
 `avenger lsp` and forwarding Zed settings. Language semantics and future

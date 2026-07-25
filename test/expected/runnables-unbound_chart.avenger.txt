@@ -1,1 +1,2 @@
 run 2:0-2:5 "chart"
+_avenger_kind 2:6-2:11 "polar"

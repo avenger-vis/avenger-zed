@@ -1,6 +1,6 @@
 # Avenger for Zed
 
-Zed language support for the [Avenger](https://github.com/avenger-vis/avenger)
+Zed language support for the [Avenger](https://github.com/jonmmease/avenger)
 visualization language.
 
 Version 0.1 provides:
@@ -196,10 +196,10 @@ second SQL grammar and this extension does not claim ordinary `.sql` files.
 
 Pinned compatibility inputs:
 
-- combined grammar: `f1b85817fa9a1635e5a0c1550deed33ccdbbfbf0`;
-- SQL grammar/base: `f2f0a63a8adfb593f1fb218202dd1fd55dc19546`;
+- combined grammar: `22a691c8d273a70f88d86375eea6a54dbf51dd3b`;
+- SQL grammar/base: `c302b0cdd98b9d57332d8c8017f9ce62e441bac9`;
 - compiler contract represented by the grammar fixtures:
-  `ba5201108c1656c7c473f411a74086d0c012ad16`.
+  `2be2449685ad9e415decd962aef508fe4401f169`.
 
 `tree-sitter-avenger` owns `highlights.scm`, `brackets.scm`, and
 `indents.scm`; synchronized copies here must remain byte-identical.

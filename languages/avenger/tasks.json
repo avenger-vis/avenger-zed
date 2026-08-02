@@ -1,15 +1,8 @@
 [
   {
     "label": "Avenger: Watch $ZED_CUSTOM_avenger_chart ($ZED_RELATIVE_FILE)",
-    "command": "cargo",
+    "command": "target/release/avenger",
     "args": [
-      "run",
-      "--release",
-      "-p",
-      "avenger-lang-cli",
-      "--bin",
-      "avenger",
-      "--",
       "watch",
       "$ZED_FILE",
       "--chart",
@@ -25,15 +18,8 @@
   },
   {
     "label": "Avenger: Watch anonymous chart ($ZED_RELATIVE_FILE)",
-    "command": "cargo",
+    "command": "target/release/avenger",
     "args": [
-      "run",
-      "--release",
-      "-p",
-      "avenger-lang-cli",
-      "--bin",
-      "avenger",
-      "--",
       "watch",
       "$ZED_FILE"
     ],

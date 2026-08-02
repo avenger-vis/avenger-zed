@@ -76,10 +76,11 @@ const adapter = read("src/lib.rs");
 for (const expected of [
   "language_server_command",
   "LspSettings::for_worktree",
-  'worktree.which("cargo")',
+  'worktree.which("target/release/avenger")',
   'worktree.which("avenger")',
   "worktree.shell_env()",
 ]) assert(adapter.includes(expected), `LSP adapter is missing ${expected}`);
+assert(!adapter.includes('worktree.which("cargo")'), "LSP adapter must not launch through Cargo");
 for (const forbidden of ["download_file(", "latest_github_release(", "label_for_completion", "label_for_symbol"]) {
   assert(!adapter.includes(forbidden), `LSP adapter contains out-of-scope behavior ${forbidden}`);
 }
@@ -115,9 +116,8 @@ assert(
   namedTask.label === "Avenger: Watch $ZED_CUSTOM_avenger_chart ($ZED_RELATIVE_FILE)",
   "named task label must identify the exact chart",
 );
-assert(namedTask.command === "cargo", "named development task must use cargo");
+assert(namedTask.command === "target/release/avenger", "named task must use the release binary");
 assert(JSON.stringify(namedTask.args) === JSON.stringify([
-  "run", "--release", "-p", "avenger-lang-cli", "--bin", "avenger", "--",
   "watch", "$ZED_FILE", "--chart", "$ZED_CUSTOM_avenger_chart",
 ]), "named development task arguments changed");
 assert(JSON.stringify(namedTask.tags) === JSON.stringify(["avenger-watch-named"]), "named task tag changed");
@@ -126,9 +126,8 @@ assert(
   anonymousTask.label === "Avenger: Watch anonymous chart ($ZED_RELATIVE_FILE)",
   "anonymous task label changed",
 );
-assert(anonymousTask.command === "cargo", "anonymous development task must use cargo");
+assert(anonymousTask.command === "target/release/avenger", "anonymous task must use the release binary");
 assert(JSON.stringify(anonymousTask.args) === JSON.stringify([
-  "run", "--release", "-p", "avenger-lang-cli", "--bin", "avenger", "--",
   "watch", "$ZED_FILE",
 ]), "anonymous development task arguments changed");
 assert(

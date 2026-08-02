@@ -25,7 +25,7 @@ Avenger compiler remains the authority for validity and diagnostics.
 The extension starts `avenger lsp` over stdio. Launch selection is deterministic:
 
 1. use an explicit `lsp.avenger-lsp.binary.path` setting;
-2. in the Avenger monorepo, run the current source with `cargo run --release`;
+2. in the Avenger monorepo, use its executable `target/release/avenger` build;
 3. in an ordinary project, use `avenger` from the worktree shell `PATH`;
 4. otherwise show an actionable configuration/install error.
 
@@ -52,8 +52,9 @@ unchanged. For example:
 }
 ```
 
-The extension does not download or bundle a server. In the source monorepo it
-uses `cargo run --release -p avenger-lang-cli --bin avenger -- lsp`; installed
+The extension does not download, bundle, or automatically build a server. In
+the source monorepo it runs `target/release/avenger lsp`; create or refresh that
+binary with `cargo build --release -p avenger-lang-cli --bin avenger`. Installed
 use requires an `avenger` binary on `PATH` or the explicit setting above.
 Optional server bounds can be supplied as binary arguments after `lsp`, for
 example `["lsp", "--max-document-mb", "4", "--max-concurrent-requests", "8"]`.
@@ -100,12 +101,11 @@ HTTP disabled.
 ## Development watch workflow
 
 The initial gutter action is intended for an Avenger source checkout. It runs
-the current workspace CLI in release mode so editor testing always exercises
-the source being developed:
+the prebuilt workspace CLI in release mode, so rebuild it after source changes:
 
 ```sh
-cargo run --release -p avenger-lang-cli --bin avenger -- \
-  watch /absolute/charts.avenger --chart overview
+cargo build --release -p avenger-lang-cli --bin avenger
+target/release/avenger watch /absolute/charts.avenger --chart overview
 ```
 
 Prerequisites:
@@ -113,6 +113,7 @@ Prerequisites:
 - Zed 1.11.3 or newer;
 - Rust and Cargo installed through `rustup`;
 - an Avenger checkout containing the `avenger-lang-cli` workspace package;
+- an up-to-date `target/release/avenger` built with the command above;
 - the chart opened from that Avenger worktree.
 
 Open a module and use the gutter run icon on the desired `chart` declaration.
@@ -123,8 +124,8 @@ task:
 
 - saves all buffers before launch;
 - uses `$ZED_WORKTREE_ROOT` as the working directory;
-- passes `$ZED_FILE` as one argument after Cargo's `--` separator and, for a
-  named chart, passes the exact captured binder after `--chart`;
+- passes `$ZED_FILE` as one argument and, for a named chart, passes the exact
+  captured binder after `--chart`;
 - retains compiler/watch output without stealing editor focus;
 - cancels and replaces the same resolved chart task when rerun;
 - permits independently resolved tasks for different charts in one module or
@@ -132,9 +133,10 @@ task:
 
 A project can replace the language tasks in `.zed/tasks.json` using the
 `avenger-watch-named` and `avenger-watch-anonymous` tags. This is useful for a
-different Cargo workspace, wrapper script, environment, or an installed
-`avenger` binary. The shipped 0.1 tasks remain source-workspace/Cargo based;
-automatic CLI installation and version management are outside this milestone.
+custom Cargo target directory, wrapper script, environment, or an installed
+`avenger` binary. The shipped tasks use the source workspace's prebuilt release
+binary; automatic builds, CLI installation, and version management are outside
+this milestone.
 
 The language server also publishes editor-neutral chart code lenses carrying
 the module URI and exact optional chart selector. Tree-sitter gutter
@@ -225,17 +227,20 @@ To upgrade the grammar:
   coordinate kind. Repair a malformed `chart` header first. A named chart
   uses its exact binder; an anonymous chart is valid only as the module's
   singleton chart.
-- **Cargo cannot find a manifest/package:** open the chart from the Avenger
-  source worktree or provide named/anonymous project task overrides.
+- **Repository release binary not found:** from the Avenger source worktree run
+  `cargo build --release -p avenger-lang-cli --bin avenger`, then restart the
+  language server or rerun the chart task. Custom Cargo target directories need
+  an explicit LSP path and named/anonymous project task overrides.
 - **Grammar/query load error:** rebuild the extension, inspect `Zed.log`, and
   verify the manifest SHA is publicly fetchable. Generated `grammars/` content
   is a local Zed cache, not source.
 - **Multiline SQL indentation differs from structural blocks:** syntax
   highlighting remains correct, but v0.1 intentionally avoids broad SQL
   continuation captures that can double-indent surrounding DSL structure.
-- **Language server not found:** install `avenger` on the worktree shell
-  `PATH`, open the Avenger source monorepo with Cargo available, or configure
-  `lsp.avenger-lsp.binary.path` explicitly.
+- **Language server not found:** outside the Avenger source monorepo, install
+  `avenger` on the worktree shell `PATH` or configure
+  `lsp.avenger-lsp.binary.path` explicitly. Inside the monorepo, build the
+  repository release binary as described above.
 - **No extract-definition action:** select a named `mark group`; unsupported free
   references or an existing sibling `<name>.avenger` intentionally
   suppress the refactor.

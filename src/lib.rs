@@ -29,6 +29,9 @@ impl zed::Extension for AvengerExtension {
                 )
             },
         );
+        let is_avenger_monorepo = worktree
+            .read_text_file("Cargo.toml")
+            .is_ok_and(|manifest| is_avenger_monorepo(&manifest));
         let launch = resolve_launch(
             LaunchSettings {
                 path,
@@ -36,10 +39,10 @@ impl zed::Extension for AvengerExtension {
                 env,
             },
             LaunchEnvironment {
-                is_avenger_monorepo: worktree
-                    .read_text_file("Cargo.toml")
-                    .is_ok_and(|manifest| is_avenger_monorepo(&manifest)),
-                cargo: worktree.which("cargo"),
+                is_avenger_monorepo,
+                release_avenger: is_avenger_monorepo
+                    .then(|| worktree.which("target/release/avenger"))
+                    .flatten(),
                 avenger: worktree.which("avenger"),
                 shell_env: worktree.shell_env().into_iter().collect(),
             },
@@ -90,7 +93,7 @@ struct LaunchSettings {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 struct LaunchEnvironment {
     is_avenger_monorepo: bool,
-    cargo: Option<String>,
+    release_avenger: Option<String>,
     avenger: Option<String>,
     shell_env: BTreeMap<String, String>,
 }
@@ -109,31 +112,19 @@ fn resolve_launch(
     let explicit_path = settings.path.filter(|path| !path.trim().is_empty());
     let (command, default_args) = if let Some(path) = explicit_path {
         (path, vec!["lsp".to_owned()])
-    } else if environment.is_avenger_monorepo
-        && let Some(cargo) = environment.cargo
-    {
-        (
-            cargo,
-            [
-                "run",
-                "--release",
-                "-p",
-                "avenger-lang-cli",
-                "--bin",
-                "avenger",
-                "--",
-                "lsp",
-            ]
-            .into_iter()
-            .map(str::to_owned)
-            .collect(),
-        )
+    } else if environment.is_avenger_monorepo {
+        let release_avenger = environment.release_avenger.ok_or_else(|| {
+            "Avenger release binary not found at `target/release/avenger`. Run \
+             `cargo build --release -p avenger-lang-cli --bin avenger` from the Avenger \
+             repository, then restart the language server."
+                .to_owned()
+        })?;
+        (release_avenger, vec!["lsp".to_owned()])
     } else if let Some(avenger) = environment.avenger {
         (avenger, vec!["lsp".to_owned()])
     } else {
         return Err(
-            "Avenger language server not found. In an Avenger source checkout, install Cargo; \
-             otherwise install `avenger` on PATH or configure \
+            "Avenger language server not found. Install `avenger` on PATH or configure \
              `lsp.avenger-lsp.binary.path` in Zed settings."
                 .to_owned(),
         );
@@ -159,7 +150,7 @@ mod tests {
     fn environment() -> LaunchEnvironment {
         LaunchEnvironment {
             is_avenger_monorepo: false,
-            cargo: Some("/toolchain/cargo".into()),
+            release_avenger: None,
             avenger: Some("/usr/local/bin/avenger".into()),
             shell_env: BTreeMap::from([
                 ("PATH".into(), "/toolchain:/usr/local/bin".into()),
@@ -170,6 +161,8 @@ mod tests {
 
     #[test]
     fn explicit_binary_has_highest_precedence_and_merges_settings() {
+        let mut detected = environment();
+        detected.is_avenger_monorepo = true;
         let command = resolve_launch(
             LaunchSettings {
                 path: Some("/custom/avenger".into()),
@@ -179,7 +172,7 @@ mod tests {
                     ("CUSTOM".into(), "1".into()),
                 ]),
             },
-            environment(),
+            detected,
         )
         .unwrap();
         assert_eq!(command.command, "/custom/avenger");
@@ -190,24 +183,22 @@ mod tests {
     }
 
     #[test]
-    fn monorepo_uses_current_release_cargo_source() {
+    fn monorepo_uses_repository_release_binary() {
         let mut detected = environment();
         detected.is_avenger_monorepo = true;
+        detected.release_avenger = Some("/workspace/target/release/avenger".into());
         let command = resolve_launch(LaunchSettings::default(), detected).unwrap();
-        assert_eq!(command.command, "/toolchain/cargo");
-        assert_eq!(
-            command.args,
-            [
-                "run",
-                "--release",
-                "-p",
-                "avenger-lang-cli",
-                "--bin",
-                "avenger",
-                "--",
-                "lsp"
-            ]
-        );
+        assert_eq!(command.command, "/workspace/target/release/avenger");
+        assert_eq!(command.args, ["lsp"]);
+    }
+
+    #[test]
+    fn monorepo_without_release_binary_returns_build_guidance() {
+        let mut detected = environment();
+        detected.is_avenger_monorepo = true;
+        let error = resolve_launch(LaunchSettings::default(), detected).unwrap_err();
+        assert!(error.contains("target/release/avenger"));
+        assert!(error.contains("cargo build --release -p avenger-lang-cli --bin avenger"));
     }
 
     #[test]
@@ -221,7 +212,7 @@ mod tests {
     fn missing_binary_returns_actionable_error() {
         let error =
             resolve_launch(LaunchSettings::default(), LaunchEnvironment::default()).unwrap_err();
-        assert!(error.contains("install `avenger`"));
+        assert!(error.contains("Install `avenger`"));
         assert!(error.contains("lsp.avenger-lsp.binary.path"));
     }
 

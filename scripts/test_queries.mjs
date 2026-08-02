@@ -82,8 +82,11 @@ for (const expected of ["comment.doc", "keyword", "function", "constant", "varia
 }
 for (const bindingPart of ["$", "width"]) {
   const lines = highlights.split("\n").filter(line => line.includes(`text: \`${bindingPart}\``));
-  if (!lines.some(line => line.includes(" - variable.special,"))) {
-    throw new Error(`binding component ${bindingPart} is not highlighted as @variable.special`);
+  if (!lines.some(line => line.includes(" - variable.parameter,"))) {
+    throw new Error(`binding component ${bindingPart} is not highlighted as @variable.parameter`);
+  }
+  if (lines.some(line => line.includes(" - variable.special,"))) {
+    throw new Error(`binding component ${bindingPart} still uses @variable.special`);
   }
   if (bindingPart === "$" && lines.some(line => line.includes(" - punctuation.special,"))) {
     throw new Error("binding sigil still uses a separate punctuation highlight");

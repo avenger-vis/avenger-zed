@@ -198,8 +198,8 @@ second SQL grammar and this extension does not claim ordinary `.sql` files.
 
 Pinned compatibility inputs:
 
-- combined grammar: `683490b7318a7e21e5d36ff40fc617beed5a1fdc`;
-- SQL grammar/base: `c302b0cdd98b9d57332d8c8017f9ce62e441bac9`;
+- combined grammar: `094f7b8c0b717a9fdf866d0249e9994d8079be68`;
+- SQL grammar/base: `1d674cb93f66a4331432f67fa59aea8916378aea`;
 - compiler contract represented by the grammar fixtures:
   `6090de63104c8890772a1b854792055b17697382`.
 

@@ -77,8 +77,23 @@ for (const name of ["highlights.scm", "brackets.scm", "indents.scm", "outline.sc
 }
 
 const highlights = run(["query", "--captures", resolve(queryRoot, "highlights.scm"), resolve(fixtureRoot, "chart.avenger")]);
-for (const expected of ["comment.doc", "keyword", "function", "variable.special", "attribute", "property"]) {
+for (const expected of ["comment.doc", "keyword", "function", "constant", "variable.special", "attribute", "property"]) {
   if (!highlights.includes(` - ${expected},`)) throw new Error(`highlight fixture is missing @${expected}`);
+}
+for (const bindingPart of ["$", "width"]) {
+  const lines = highlights.split("\n").filter(line => line.includes(`text: \`${bindingPart}\``));
+  if (!lines.some(line => line.includes(" - variable.special,"))) {
+    throw new Error(`binding component ${bindingPart} is not highlighted as @variable.special`);
+  }
+  if (bindingPart === "$" && lines.some(line => line.includes(" - punctuation.special,"))) {
+    throw new Error("binding sigil still uses a separate punctuation highlight");
+  }
+}
+for (const mode of ["direct", "encoded"]) {
+  const lines = highlights.split("\n").filter(line => line.includes(`text: \`${mode}\``));
+  if (!lines.some(line => line.includes(" - constant,"))) {
+    throw new Error(`channel mode ${mode} is not highlighted as @constant`);
+  }
 }
 
 const capturePattern = /capture:\s*\d+ - ([A-Za-z0-9_.]+), start: \((\d+), (\d+)\), end: \((\d+), (\d+)\), text: `([\s\S]*?)`(?=\n\s+pattern:|\n\/[^\n]+$|$)/gm;

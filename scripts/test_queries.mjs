@@ -95,6 +95,17 @@ for (const mode of ["direct", "encoded"]) {
     throw new Error(`channel mode ${mode} is not highlighted as @constant`);
   }
 }
+const quotedColumnLines = highlights.split("\n").filter(line =>
+  line.includes('text: `"title"`')
+);
+for (const capture of ["string.special", "variable.special"]) {
+  if (!quotedColumnLines.some(line => line.includes(` - ${capture},`))) {
+    throw new Error(`double-quoted SQL column "title" is missing @${capture}`);
+  }
+}
+if (quotedColumnLines.some(line => line.includes(" - property,"))) {
+  throw new Error('double-quoted SQL column "title" still uses @property');
+}
 
 const capturePattern = /capture:\s*\d+ - ([A-Za-z0-9_.]+), start: \((\d+), (\d+)\), end: \((\d+), (\d+)\), text: `([\s\S]*?)`(?=\n\s+pattern:|\n\/[^\n]+$|$)/gm;
 const normalize = output => [...output.matchAll(capturePattern)].map(match =>

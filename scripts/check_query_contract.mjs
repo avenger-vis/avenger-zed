@@ -27,10 +27,14 @@ const queryNames = ["highlights.scm", "brackets.scm", "indents.scm", "outline.sc
 const failures = [];
 
 for (const queryName of queryNames) {
-  const source = readFileSync(resolve(root, "languages", "avenger", queryName), "utf8")
+  const source = readFileSync(resolve(root, "languages", "avenger", queryName), "utf8");
+  // String literals may contain query regex syntax such as `^(encoded|direct)$`.
+  // They are token patterns or predicate operands, never named-node references.
+  const structuralSource = source
+    .replace(/"(?:\\.|[^"\\])*"/g, "\"\"")
     .replace(/;[^\n]*/g, "");
-  const referencedNodes = [...source.matchAll(/\(\s*([A-Za-z_][A-Za-z0-9_]*)\b/g)].map(match => match[1]);
-  const referencedFields = [...source.matchAll(/\b([A-Za-z_][A-Za-z0-9_]*)\s*:/g)].map(match => match[1]);
+  const referencedNodes = [...structuralSource.matchAll(/\(\s*([A-Za-z_][A-Za-z0-9_]*)\b/g)].map(match => match[1]);
+  const referencedFields = [...structuralSource.matchAll(/\b([A-Za-z_][A-Za-z0-9_]*)\s*:/g)].map(match => match[1]);
   for (const node of referencedNodes) {
     if (node !== "_" && !nodeNames.has(node)) failures.push(`${queryName}: unknown named node ${node}`);
   }

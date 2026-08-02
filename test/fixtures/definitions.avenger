@@ -7,7 +7,7 @@ export define mark badge {
   output span(0, $radius) as bounds;
   private mark group as implementation {
     public mark symbol as points {
-      size: $radius;
+      size: encoded $radius;
     }
   }
 }

@@ -5,6 +5,6 @@ chart cartesian as recovery {
     value: 1;
   }
   mark symbol as after_error {
-    x: 2;
+    x: encoded 2;
   }
 }

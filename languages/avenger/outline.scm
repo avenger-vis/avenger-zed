@@ -129,11 +129,19 @@
     (as_clause name: (identifier) @name)) @item)
   (#match? @name ".+"))
 
-; Scalar, store, and selection params share one declaration node. The authored
-; physical type or state category remains visible beside the binder.
+; Scalar params expose only their binder in the outline. Their SQL initializer
+; may be arbitrarily long, while inferred Arrow-type detail belongs to the LSP.
 ((param_declaration
   "param" @context
-  type: (_) @context.extra
+  initializer: (_)
+  name: (identifier) @name) @item
+  (#match? @name ".+"))
+
+; Store and selection params retain their structural category beside the
+; binder because that category is authored syntax rather than inferred detail.
+((param_declaration
+  "param" @context
+  type: (param_kind) @context.extra
   name: (identifier) @name) @item
   (#match? @name ".+"))
 

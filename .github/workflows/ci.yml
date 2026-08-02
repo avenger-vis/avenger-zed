@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: avenger-vis/tree-sitter-avenger
-          ref: 1d4a9ff6caae784e27f48595b6d983d1882df36d
+          ref: 6c03f366e0ff203467c6b5ab5c7de8972baef515
           path: tree-sitter-avenger
 
       - name: Set up pnpm

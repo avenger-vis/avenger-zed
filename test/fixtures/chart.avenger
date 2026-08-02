@@ -3,9 +3,7 @@ import { local as data } from './data.avenger';
 
 -- | Interactive chart fixture.
 export chart cartesian as values {
-  param float64 as width {
-    value: 640;
-  }
+  param 640 as width;
   param store as rows {
     field float64 x;
   }

@@ -1,9 +1,7 @@
 avenger 1;
 
 chart cartesian as recovery {
-  param float64 as {
-    value: 1;
-  }
+  param CAST(1 AS DOUBLE) as;
   mark symbol as after_error {
     x: encoded 2;
   }

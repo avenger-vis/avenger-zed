@@ -89,8 +89,8 @@ left untouched while diagnostics remain visible.
 Rename and quick fixes use versioned document edits. A rename is offered only
 for authored symbols whose reference set is complete and collision-free. The
 initial quick fixes cover close property-name corrections, missing declaration
-binders, ambiguous SQL-column qualification, and unambiguous typed parameter
-declarations such as `param float64 as width { value: 640; }`. **Inline
+binders, ambiguous SQL-column qualification, and inferred parameter
+declarations such as `param CAST(640 AS DOUBLE) as width;`. **Inline
 imported definition** uses the compiler's canonical
 single-instance expansion. **Extract mark group as definition** creates a sibling
 mark-definition file only when Zed advertises create-file edits and the target
@@ -198,7 +198,7 @@ second SQL grammar and this extension does not claim ordinary `.sql` files.
 
 Pinned compatibility inputs:
 
-- combined grammar: `1d4a9ff6caae784e27f48595b6d983d1882df36d`;
+- combined grammar: `6c03f366e0ff203467c6b5ab5c7de8972baef515`;
 - SQL grammar/base: `c302b0cdd98b9d57332d8c8017f9ce62e441bac9`;
 - compiler contract represented by the grammar fixtures:
   `6090de63104c8890772a1b854792055b17697382`.

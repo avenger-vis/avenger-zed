@@ -262,6 +262,13 @@ fixes, definition inline/extract refactors, and lazy import pinning. Live
 inspector enrichment and automatic CLI installation remain future work.
 Anonymous charts use their coordinate kind as the Tree-sitter outline name.
 
+SQL completion intentionally requires an opening double quote before it offers
+data columns (`"na` or `m."na`), and requires `$` before it offers scalar params
+or table-valued stores. Bare column-like words and `m.` therefore produce no
+column menu. If semantic project analysis is still refreshing, syntax-aware
+results may be marked incomplete; saving/restarting is not required, and a
+newer document or workspace generation suppresses the stale request.
+
 The Rust/Wasm glue is deliberately limited to locating and launching
 `avenger lsp` and forwarding Zed settings. Language semantics and future
 inspector connections remain in the Avenger CLI/language crates rather than

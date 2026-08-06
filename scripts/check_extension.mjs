@@ -119,6 +119,7 @@ assert(
 assert(namedTask.command === "target/release/avenger", "named task must use the release binary");
 assert(JSON.stringify(namedTask.args) === JSON.stringify([
   "watch", "$ZED_FILE", "--chart", "$ZED_CUSTOM_avenger_chart",
+  "--project-root", "$ZED_WORKTREE_ROOT",
 ]), "named development task arguments changed");
 assert(JSON.stringify(namedTask.tags) === JSON.stringify(["avenger-watch-named"]), "named task tag changed");
 
@@ -128,7 +129,7 @@ assert(
 );
 assert(anonymousTask.command === "target/release/avenger", "anonymous task must use the release binary");
 assert(JSON.stringify(anonymousTask.args) === JSON.stringify([
-  "watch", "$ZED_FILE",
+  "watch", "$ZED_FILE", "--project-root", "$ZED_WORKTREE_ROOT",
 ]), "anonymous development task arguments changed");
 assert(
   JSON.stringify(anonymousTask.tags) === JSON.stringify(["avenger-watch-anonymous"]),

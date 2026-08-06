@@ -126,6 +126,9 @@ task:
 - uses `$ZED_WORKTREE_ROOT` as the working directory;
 - passes `$ZED_FILE` as one argument and, for a named chart, passes the exact
   captured binder after `--chart`;
+- passes `$ZED_WORKTREE_ROOT` through `--project-root`, allowing chart modules
+  in nested directories to import modules and local data elsewhere in the open
+  worktree while retaining the compiler's project capability boundary;
 - retains compiler/watch output without stealing editor focus;
 - cancels and replaces the same resolved chart task when rerun;
 - permits independently resolved tasks for different charts in one module or

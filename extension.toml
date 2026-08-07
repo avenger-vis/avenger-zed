@@ -8,7 +8,7 @@ repository = "https://github.com/avenger-vis/avenger-zed"
 
 [grammars.avenger]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger"
-rev = "f6c5044256e8a5a125ec7476035af74df5754f22"
+rev = "e6ea082aaad69b3bf966f4dc75e81761f2cb15d8"
 
 [language_servers.avenger-lsp]
 name = "Avenger Language Server"

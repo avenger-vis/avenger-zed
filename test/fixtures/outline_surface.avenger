@@ -3,8 +3,8 @@ import * as acme from 'native:acme';
 
 export chart acme.custom as demo {
   private param 1 as threshold;
-  public param store as rows { field int64 id; }
-  param selection as brush {}
+  public store as rows { field int64 id; }
+  selection as brush {}
   resource tiles as osm {}
   mark group as panel {}
   mark acme.symbol as points {}

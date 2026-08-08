@@ -137,11 +137,15 @@
   name: (identifier) @name) @item
   (#match? @name ".+"))
 
-; Store and selection params retain their structural category beside the
-; binder because that category is authored syntax rather than inferred detail.
-((param_declaration
-  "param" @context
-  type: (param_kind) @context.extra
+; Stores and selections are peer state declarations. Their authored category
+; remains visible beside the binder in the outline.
+((store_declaration
+  "store" @context
+  name: (identifier) @name) @item
+  (#match? @name ".+"))
+
+((selection_declaration
+  "selection" @context
   name: (identifier) @name) @item
   (#match? @name ".+"))
 

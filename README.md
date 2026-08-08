@@ -201,10 +201,10 @@ second SQL grammar and this extension does not claim ordinary `.sql` files.
 
 Pinned compatibility inputs:
 
-- combined grammar: `f6c5044256e8a5a125ec7476035af74df5754f22`;
+- combined grammar: `8ac14fe1fd775920eb5036aa0f9d736c9627e515`;
 - SQL grammar/base: `eb90082c73ada5aa8ef0f66ed73b1444ce4501db`;
 - compiler contract represented by the grammar fixtures:
-  `6090de63104c8890772a1b854792055b17697382`.
+  `5a814e78f5f6ed35fc561e976509e49735a93096`.
 
 `tree-sitter-avenger` owns `highlights.scm`, `brackets.scm`, and
 `indents.scm`; synchronized copies here must remain byte-identical.

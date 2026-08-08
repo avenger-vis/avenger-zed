@@ -1,0 +1,27 @@
+avenger 1;
+
+chart custom as state_actions {
+  param 1 as threshold;
+  store as rows {
+    field int64 id;
+    field utf8 label;
+  }
+  selection as brush {}
+
+  on click as update_state {
+    set threshold at current replacing scopes to $threshold + 1;
+    insert rows { row { id: 1; label: 'one'; } }
+    replace rows at start { row { id: 2; label: 'two'; } }
+    upsert rows { row { id: 3; label: 'three'; } }
+    patch rows { key { id: 3; } fields { label: 'updated'; } }
+    delete rows { key { id: 2; } }
+    toggle rows { row { id: 4; label: 'four'; } }
+    clear rows;
+    clear brush;
+    replace brush within level(1) { clause { id: 'range'; } }
+    upsert brush from scene { geometry: polygon(event.path); }
+    toggle brush from scene { geometry: polygon(event.path); }
+    delete brush within free { ids: ['range']; }
+    set cursor to 'crosshair';
+  }
+}

@@ -110,6 +110,23 @@ if (quotedColumnLines.some(line => line.includes(" - property,"))) {
   throw new Error('double-quoted SQL column "title" still uses @property');
 }
 
+const actionHighlights = run([
+  "query", "--captures", resolve(queryRoot, "highlights.scm"),
+  resolve(fixtureRoot, "state_actions.avenger"),
+]);
+for (const operation of ["set", "clear", "insert", "replace", "upsert", "patch", "delete", "toggle"]) {
+  const lines = actionHighlights.split("\n").filter(line => line.includes(`text: \`${operation}\``));
+  if (!lines.some(line => line.includes(" - keyword,"))) {
+    throw new Error(`state action operation ${operation} is not highlighted as @keyword`);
+  }
+}
+for (const target of ["threshold", "rows", "brush", "cursor"]) {
+  const lines = actionHighlights.split("\n").filter(line => line.includes(`text: \`${target}\``));
+  if (!lines.some(line => line.includes(" - variable,"))) {
+    throw new Error(`state action target ${target} is not highlighted as @variable`);
+  }
+}
+
 const capturePattern = /capture:\s*\d+ - ([A-Za-z0-9_.]+), start: \((\d+), (\d+)\), end: \((\d+), (\d+)\), text: `([\s\S]*?)`(?=\n\s+pattern:|\n\/[^\n]+$|$)/gm;
 const normalize = output => [...output.matchAll(capturePattern)].map(match =>
   `${match[1]} ${match[2]}:${match[3]}-${match[4]}:${match[5]} ${JSON.stringify(match[6])}`

@@ -1,0 +1,6 @@
+name = "Avenger Datetime"
+grammar = "avenger_datetime"
+# Only injections reach this language: Avenger SQL injects it by the suffix, since Zed matches an
+# injected language by its exact name or file suffix.
+path_suffixes = ["avenger-datetime"]
+hidden = true

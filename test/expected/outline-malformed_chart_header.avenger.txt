@@ -1,4 +1,0 @@
-item 3:2-3:42 "mark symbol as hidden_by_header_error {}"
-context 3:2-3:6 "mark"
-context.extra 3:7-3:13 "symbol"
-name 3:17-3:39 "hidden_by_header_error"

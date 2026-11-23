@@ -1,8 +1,0 @@
-avenger 1;
-
-chart cartesian as recovery {
-  broken: coalesce(1, ;
-  mark symbol as after_error {
-    x: encoded 2;
-  }
-}

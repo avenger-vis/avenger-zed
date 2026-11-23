@@ -1,0 +1,17 @@
+name = "Avenger SQL"
+grammar = "avenger_sql"
+# `avenger-sql` makes a Markdown fence ```avenger-sql resolve to this language: Zed matches an
+# injected language by its exact name or file suffix.
+path_suffixes = ["av.sql", "av.sqlm", "avenger-sql"]
+line_comments = ["-- "]
+block_comment = { start = "/*", prefix = "", end = "*/", tab_size = 0 }
+tab_size = 2
+hard_tabs = false
+brackets = [
+  { start = "(", end = ")", close = true, newline = true },
+  { start = "[", end = "]", close = true, newline = true },
+  { start = "{", end = "}", close = true, newline = true },
+  { start = "'", end = "'", close = true, newline = false },
+  { start = "\"", end = "\"", close = true, newline = false },
+  { start = "`", end = "`", close = true, newline = false },
+]

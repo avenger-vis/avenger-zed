@@ -1,5 +1,0 @@
-avenger 1;
-
-chart {
-  mark symbol as hidden_by_header_error {}
-}

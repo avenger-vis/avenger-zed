@@ -1,0 +1,16 @@
+---
+title: Smoke report
+---
+
+Quarto cells. The language server answers inside each cell (hover, diagnostics) when Zed attaches
+it to the Quarto language. The second cell has attributes after its language.
+
+```{avenger-sql}
+FROM UNNEST([STRUCT('a' AS k, 1 AS v)])
+|> AGGREGATE mark_bar(x => k, y => v, title => '*Bold* title') AS chart
+```
+
+```{avenger-sql echo=false}
+FROM UNNEST([STRUCT('b' AS k, 2 AS v)])
+|> AGGREGATE mark_bar(x => k, y => v, title => title('_Italic_ title', subtitle => 'sub')) AS chart
+```

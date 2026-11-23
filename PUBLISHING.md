@@ -6,8 +6,9 @@ When authorization is given, use this reviewed 0.1 handoff:
 1. Confirm the release commit is pushed to a branch of the public
    `https://github.com/avenger-vis/avenger-zed` repository. Zed rejects a
    detached-only submodule commit.
-2. Repeat `pnpm install --frozen-lockfile`, `pnpm test`, the manual Zed editing
-   smoke matrix, and native Cargo-watch acceptance from a clean checkout.
+2. Confirm that every grammar in `extension.toml` pins a merged commit of its
+   repository's main branch, then repeat `pnpm install --frozen-lockfile`,
+   `pnpm test`, and the checks of `test/smoke/SMOKE.md` from a clean checkout.
 3. Confirm `extension.toml` still reports `id = "avenger"` and
    `version = "0.1.0"`, and that the root `LICENSE` is present.
 4. Fork `zed-industries/extensions` to a personal GitHub account, as recommended
@@ -31,9 +32,9 @@ When authorization is given, use this reviewed 0.1 handoff:
 7. Run `pnpm sort-extensions` in the registry checkout and review both
    `.gitmodules` and `extensions.toml`.
 8. Open a pull request to `zed-industries/extensions` that names the tested Zed
-   version and platforms and explains that Avenger 0.1 is a configuration-only
-   language extension whose runnable intentionally targets an Avenger source
-   workspace.
+   version and platforms and explains that Avenger 0.1 is a language extension
+   for avenger-sql whose language server is the `avenger` binary, which the
+   extension finds rather than downloads.
 
 For an update, push the new extension commit first, update the registry
 submodule, and change the registry version to exactly match `extension.toml`.

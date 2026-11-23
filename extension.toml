@@ -3,14 +3,31 @@ name = "Avenger"
 version = "0.1.0"
 schema_version = 1
 authors = ["Jon Mease and Avenger contributors"]
-description = "Avenger visualization language support"
+description = "avenger-sql support: scripts (.av.sql), modules (.av.sqlm), and the language server"
 repository = "https://github.com/avenger-vis/avenger-zed"
 
-[grammars.avenger]
-repository = "https://github.com/avenger-vis/tree-sitter-avenger"
-rev = "8f1353e75f24c0373290affef13ca3f940c2f471"
+[grammars.avenger_sql]
+repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
+rev = "a1d478b510a0f254e1723d20a7dd0728db717dca"
+
+# GoogleSQL's format strings and the values of its date, time, and range literals, which Avenger
+# SQL injects, from their directories of the same repository and revision.
+[grammars.avenger_format]
+repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
+rev = "a1d478b510a0f254e1723d20a7dd0728db717dca"
+path = "format"
+
+[grammars.avenger_datetime]
+repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
+rev = "a1d478b510a0f254e1723d20a7dd0728db717dca"
+path = "datetime"
+
+# The Typst subset of avenger's labels, which Avenger SQL injects into the strings of markup.
+[grammars.avenger_typst]
+repository = "https://github.com/avenger-vis/tree-sitter-avenger-typst"
+rev = "87ceea5dd60ecb311f1d2b883f84e637feeb6ab0"
 
 [language_servers.avenger-lsp]
 name = "Avenger Language Server"
-languages = ["Avenger"]
-language_ids = { Avenger = "avenger" }
+languages = ["Avenger SQL", "Quarto"]
+language_ids = { "Avenger SQL" = "avenger-sql", Quarto = "quarto" }

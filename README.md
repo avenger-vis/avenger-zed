@@ -12,7 +12,7 @@ Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of 
 - the language server, `avenger lsp`, for Avenger SQL and for Quarto documents: diagnostics,
   completion, hover, navigation, and the rest of
   [avenger-cli](https://github.com/jonmmease/avenger/tree/main/avenger-cli)'s editor features,
-  and semantic tokens over the grammar's colors.
+  and, optionally, semantic tokens over the grammar's colors.
 
 ## Language server
 
@@ -42,8 +42,18 @@ with `cargo build --release -p avenger-cli --bin avenger`.
 
 ## Semantic tokens and colors
 
-Zed leaves semantic tokens off by default. With `combined`, the server's tokens refine the
-grammar's colors, such as a column apart from a function, and Tree-sitter keeps the rest:
+The grammar and its injections give every color, so highlighting needs no setting. The server's
+semantic tokens are an optional refinement, from what only its analysis knows:
+
+- what a name refers to: a column or a field, a table or a CTE, a variable or an alias, a script
+  parameter, or a module, where the grammar colors a name by its place in the syntax;
+- a string value of a fixed set, such as `'plain_lines'` in `syntax => 'plain_lines'`, which
+  `languages/avenger-sql/semantic_token_rules.json` shows in italics;
+- a string that only looks like markup to the grammar, such as a title whose syntax is a variable
+  that the analysis knows is `'plain'`, which then takes the string color.
+
+Zed leaves semantic tokens off by default. To turn them on, with Tree-sitter's colors beneath
+them:
 
 ```json
 {
@@ -55,8 +65,8 @@ grammar's colors, such as a column apart from a function, and Tree-sitter keeps 
 ```
 
 The server sends no tokens over the strings that an injection colors, so their colors stay in
-`combined` mode. `languages/avenger-sql/semantic_token_rules.json` shows a string value of a
-fixed set, such as `'plain_lines'` in `syntax => 'plain_lines'`, in italics.
+`combined` mode. Without the setting, the server still gives diagnostics, completion, hover, and
+its other features.
 
 Zed's bundled themes give Typst's emphasis, `_island_`, a color and no italic, as they do for
 Markdown's. A theme override makes it italic, for the theme in use:

@@ -8,18 +8,18 @@ repository = "https://github.com/avenger-vis/avenger-zed"
 
 [grammars.avenger_sql]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
-rev = "a1d478b510a0f254e1723d20a7dd0728db717dca"
+rev = "44d1639307431923a0a73186e269bf65bbf22b4a"
 
 # GoogleSQL's format strings and the values of its date, time, and range literals, which Avenger
 # SQL injects, from their directories of the same repository and revision.
 [grammars.avenger_format]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
-rev = "a1d478b510a0f254e1723d20a7dd0728db717dca"
+rev = "44d1639307431923a0a73186e269bf65bbf22b4a"
 path = "format"
 
 [grammars.avenger_datetime]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
-rev = "a1d478b510a0f254e1723d20a7dd0728db717dca"
+rev = "44d1639307431923a0a73186e269bf65bbf22b4a"
 path = "datetime"
 
 # The Typst subset of avenger's labels, which Avenger SQL injects into the strings of markup.

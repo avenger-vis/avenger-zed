@@ -25,7 +25,7 @@ path = "datetime"
 # The Typst subset of avenger's labels, which Avenger SQL injects into the strings of markup.
 [grammars.avenger_typst]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger-typst"
-rev = "87ceea5dd60ecb311f1d2b883f84e637feeb6ab0"
+rev = "5c830ae2686f46d195456dec3f475024cfc52e7d"
 
 [language_servers.avenger-lsp]
 name = "Avenger Language Server"

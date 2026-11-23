@@ -101,7 +101,7 @@ pinned grammars into a `grammars/` directory here, which is ignored. After a cha
 ## Development and checks
 
 The extension's Rust runtime only chooses and configures the language server's process. Node and
-pnpm run the package's checks, with Node 20.19.6, pnpm 11.9.0, Tree-sitter CLI 0.26.3, and the
+pnpm run the package's checks, with Node 24, pnpm 11.9.0, Tree-sitter CLI 0.26.3, and the
 current stable Rust `wasm32-wasip2` target.
 
 ```sh

@@ -1,8 +1,0 @@
-(body "{" @indent "}" @end)
-(definition_body "{" @indent "}" @end)
-(param_body "{" @indent "}" @end)
-(predicate_body "{" @indent "}" @end)
-(match_body "{" @indent "}" @end)
-(named_import_clause "{" @indent "}" @end)
-(array "[" @indent "]" @end)
-(parameterized_arrow_type "(" @indent ")" @end)

@@ -1,0 +1,8 @@
+name = "Avenger Typst"
+grammar = "avenger_typst"
+# Only injections reach this language: Avenger SQL injects it into the strings of markup by the
+# suffix, since Zed matches an injected language by its exact name or file suffix.
+path_suffixes = ["avenger-typst"]
+hidden = true
+line_comments = ["// "]
+block_comment = { start = "/*", prefix = "", end = "*/", tab_size = 0 }

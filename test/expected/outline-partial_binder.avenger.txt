@@ -1,8 +1,0 @@
-item 2:0-7:1 "chart cartesian as recovery {\n  param CAST(1 AS DOUBLE) as;\n  mark symbol as after_error {\n    x: encoded 2;\n  }\n}"
-context 2:0-2:5 "chart"
-context.extra 2:6-2:15 "cartesian"
-name 2:19-2:27 "recovery"
-item 4:2-6:3 "mark symbol as after_error {\n    x: encoded 2;\n  }"
-context 4:2-4:6 "mark"
-context.extra 4:7-4:13 "symbol"
-name 4:17-4:28 "after_error"

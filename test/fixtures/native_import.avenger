@@ -1,7 +1,0 @@
-avenger 1;
-import * as acme from 'native:acme';
-
-chart acme.cartesian as native_chart {
-  transform acme.summarize as totals {}
-  mark acme.badge as points {}
-}

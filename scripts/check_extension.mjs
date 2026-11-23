@@ -1,77 +1,98 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { execFileSync } from "node:child_process";
-import { resolve } from "node:path";
+// Checks the extension's package: the manifest and its grammars, the languages and the grammars
+// they name, that every language that an injection names resolves in Zed, the language server
+// adapter, and the files that Zed builds and must not be committed.
 
-const root = resolve(import.meta.dirname, "..");
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { basename, relative, resolve } from "node:path";
+
+import { grammars, languages, root } from "./grammars.mjs";
+
 const read = path => readFileSync(resolve(root, path), "utf8");
+const failures = [];
 const assert = (condition, message) => {
-  if (!condition) throw new Error(message);
+  if (!condition) failures.push(message);
 };
 
+// The manifest.
 const manifest = read("extension.toml");
 for (const expected of [
   'id = "avenger"',
   'name = "Avenger"',
   'version = "0.1.0"',
   'repository = "https://github.com/avenger-vis/avenger-zed"',
-  '[grammars.avenger]',
-  'repository = "https://github.com/avenger-vis/tree-sitter-avenger"',
-  '[language_servers.avenger-lsp]',
-  'name = "Avenger Language Server"',
-  'languages = ["Avenger"]',
-  'language_ids = { Avenger = "avenger" }',
+  "[language_servers.avenger-lsp]",
+  'languages = ["Avenger SQL", "Quarto"]',
+  'language_ids = { "Avenger SQL" = "avenger-sql", Quarto = "quarto" }',
 ]) assert(manifest.includes(expected), `extension.toml is missing ${expected}`);
-assert(/^rev = "[0-9a-f]{40}"$/m.test(manifest), "grammar revision must be a full SHA");
-const grammarRevision = manifest.match(/^rev = "([0-9a-f]{40})"$/m)[1];
-assert(!manifest.includes("file://"), "publishable manifest must not use file://");
-assert((manifest.match(/^\[grammars\./gm) ?? []).length === 1, "register exactly one grammar");
-assert(
-  read(".github/workflows/ci.yml").includes(`ref: ${grammarRevision}`),
-  "CI grammar checkout must match extension.toml",
-);
+assert(!manifest.includes("file://"), "extension.toml must not name a file:// repository");
 
-const config = read("languages/avenger/config.toml");
+// The grammars: avenger-sql's three grammars come from one revision of their repository, and CI
+// checks out each repository at its revision.
+const pinned = grammars();
+const byName = new Map(pinned.map(grammar => [grammar.name, grammar]));
+assert(
+  JSON.stringify([...byName.keys()]) === JSON.stringify(["avenger_sql", "avenger_format", "avenger_datetime", "avenger_typst"]),
+  `extension.toml's grammars are ${[...byName.keys()].join(", ")}`,
+);
+const revisions = new Map();
+for (const grammar of pinned) {
+  const other = revisions.get(grammar.repository);
+  assert(!other || other === grammar.rev, `the grammars of ${grammar.repository} pin different revisions`);
+  revisions.set(grammar.repository, grammar.rev);
+}
+const ci = read(".github/workflows/ci.yml");
+for (const [repository, rev] of revisions) {
+  const name = new URL(repository).pathname.slice(1);
+  assert(
+    ci.includes(`repository: ${name}\n          ref: ${rev}\n          path: ${basename(repository)}`),
+    `CI must check out ${name} at ${rev} into ${basename(repository)}`,
+  );
+}
+
+// The languages: each names a grammar of the manifest, every grammar has a language, and only
+// Avenger SQL is visible, since the others are only injected.
+const found = languages();
+for (const language of found) {
+  assert(byName.has(language.grammar), `${language.name} names the grammar ${language.grammar}, which extension.toml lacks`);
+  assert(language.hidden === (language.name !== "Avenger SQL"), `${language.name} must ${language.hidden ? "not " : ""}be hidden`);
+}
+for (const grammar of pinned) {
+  assert(found.some(language => language.grammar === grammar.name), `no language uses the grammar ${grammar.name}`);
+}
+const sql = read("languages/avenger-sql/config.toml");
 for (const expected of [
-  'grammar = "avenger"',
-  'path_suffixes = ["avenger"]',
+  'path_suffixes = ["av.sql", "av.sqlm", "avenger-sql"]',
   'line_comments = ["-- "]',
   "tab_size = 2",
   "hard_tabs = false",
-]) assert(config.includes(expected), `config.toml is missing ${expected}`);
-for (const forbidden of ["avgr", '"//', '"#']) {
-  assert(!config.includes(forbidden), `config.toml contains unsupported ${forbidden}`);
+]) assert(sql.includes(expected), `languages/avenger-sql/config.toml is missing ${expected}`);
+
+// Zed finds an injected language by its name or a file suffix of a language: one of the
+// extension's, or one that Zed bundles.
+const BUNDLED = new Set(["json", "regex"]);
+const resolves = name =>
+  BUNDLED.has(name) || found.some(language => language.name === name || language.suffixes.includes(name));
+for (const language of found) {
+  const path = resolve(language.directory, "injections.scm");
+  if (!existsSync(path)) continue;
+  const names = new Set([...readFileSync(path, "utf8").matchAll(/#set! injection\.language "([^"]+)"/g)].map(m => m[1]));
+  for (const name of names) {
+    assert(resolves(name), `${relative(root, path)} injects ${name}, which no language resolves`);
+  }
 }
 
-const required = [
-  "LICENSE",
-  "PUBLISHING.md",
-  "README.md",
-  "Cargo.toml",
-  "Cargo.lock",
-  "src/lib.rs",
-  "languages/avenger/highlights.scm",
-  "languages/avenger/brackets.scm",
-  "languages/avenger/indents.scm",
-  "languages/avenger/outline.scm",
-  "languages/avenger/runnables.scm",
-  "languages/avenger/tasks.json",
-  "scripts/check_query_contract.mjs",
-  "scripts/measure_queries.mjs",
-  "test/metrics/query-performance-macos-arm64-2026-07-21.json",
-  "test/metrics/query-performance-macos-arm64-2026-07-24.json",
-];
-for (const path of required) assert(existsSync(resolve(root, path)), `missing ${path}`);
-for (const name of readdirSync(resolve(root, "test/fixtures"))) {
-  assert(
-    !/\.(?:data|mark|tool|transform)\.avenger$/.test(name),
-    `fixture ${name} retains an obsolete role-specific suffix`,
-  );
+// Semantic token rules.
+const rules = JSON.parse(read("languages/avenger-sql/semantic_token_rules.json"));
+assert(Array.isArray(rules) && rules.every(rule => typeof rule.token_type === "string"), "semantic_token_rules.json must be a list of rules with token types");
+
+// The language server adapter.
+for (const path of ["LICENSE", "PUBLISHING.md", "README.md", "Cargo.toml", "Cargo.lock", "src/lib.rs"]) {
+  assert(existsSync(resolve(root, path)), `missing ${path}`);
 }
-assert(execFileSync("git", ["ls-files", "extension.wasm"], { cwd: root, encoding: "utf8" }).trim() === "",
-  "compiled extension.wasm must not be committed");
 const cargo = read("Cargo.toml");
-assert(cargo.includes('crate-type = ["cdylib", "rlib"]'), "extension must build as a cdylib");
-assert(cargo.includes('zed_extension_api = "=0.7.0"'), "Zed extension API must be exactly pinned");
+assert(cargo.includes('crate-type = ["cdylib", "rlib"]'), "the extension must build as a cdylib");
+assert(cargo.includes('zed_extension_api = "=0.7.0"'), "the Zed extension API must be pinned exactly");
 const adapter = read("src/lib.rs");
 for (const expected of [
   "language_server_command",
@@ -79,81 +100,26 @@ for (const expected of [
   'worktree.which("target/release/avenger")',
   'worktree.which("avenger")',
   "worktree.shell_env()",
-]) assert(adapter.includes(expected), `LSP adapter is missing ${expected}`);
-assert(!adapter.includes('worktree.which("cargo")'), "LSP adapter must not launch through Cargo");
-for (const forbidden of ["download_file(", "latest_github_release(", "label_for_completion", "label_for_symbol"]) {
-  assert(!adapter.includes(forbidden), `LSP adapter contains out-of-scope behavior ${forbidden}`);
-}
-assert(read(".gitignore").split(/\r?\n/).includes("grammars/"), "Zed's generated grammar checkout must be ignored");
-assert(execFileSync("git", ["ls-files", "grammars"], { cwd: root, encoding: "utf8" }).trim() === "",
-  "configuration-only extension must not track generated grammars");
-
-const captureContracts = new Map([
-  ["highlights.scm", new Set([
-    "attribute", "boolean", "comment", "comment.doc", "constant", "function", "keyword",
-    "namespace",
-    "number", "operator", "property", "punctuation.bracket", "punctuation.delimiter",
-    "punctuation.special", "string", "string.escape", "string.special", "type",
-    "type.builtin", "variable", "variable.parameter", "variable.special",
-  ])],
-  ["brackets.scm", new Set(["open", "close"])],
-  ["indents.scm", new Set(["indent", "end"])],
-  ["outline.scm", new Set(["item", "name", "context", "context.extra", "annotation"])],
-  ["runnables.scm", new Set(["run", "avenger_chart"])],
-]);
-for (const [name, allowed] of captureContracts) {
-  const source = read(`languages/avenger/${name}`);
-  for (const capture of source.matchAll(/@([A-Za-z_][A-Za-z0-9_.]*)/g)) {
-    if (capture[1].startsWith("_")) continue;
-    assert(allowed.has(capture[1]), `${name} uses unsupported capture @${capture[1]}`);
-  }
+]) assert(adapter.includes(expected), `the adapter is missing ${expected}`);
+assert(!adapter.includes('worktree.which("cargo")'), "the adapter must not start the server through Cargo");
+for (const forbidden of ["download_file(", "latest_github_release("]) {
+  assert(!adapter.includes(forbidden), `the adapter must not download the server (${forbidden})`);
 }
 
-const tasks = JSON.parse(read("languages/avenger/tasks.json"));
-assert(Array.isArray(tasks) && tasks.length === 2, "tasks.json must contain named and anonymous tasks");
-const [namedTask, anonymousTask] = tasks;
-assert(
-  namedTask.label === "Avenger: Watch $ZED_CUSTOM_avenger_chart ($ZED_RELATIVE_FILE)",
-  "named task label must identify the exact chart",
-);
-assert(namedTask.command === "target/release/avenger", "named task must use the release binary");
-assert(JSON.stringify(namedTask.args) === JSON.stringify([
-  "watch", "$ZED_FILE", "--chart", "$ZED_CUSTOM_avenger_chart",
-  "--project-root", "$ZED_WORKTREE_ROOT",
-]), "named development task arguments changed");
-assert(JSON.stringify(namedTask.tags) === JSON.stringify(["avenger-watch-named"]), "named task tag changed");
+// Line endings: the grammars' repositories check out with LF, so the copies of their queries,
+// and the files that the scripts read, must too, also on Windows.
+assert(read(".gitattributes").split(/\r?\n/).includes("* text eol=lf"), ".gitattributes must check out text with LF");
 
-assert(
-  anonymousTask.label === "Avenger: Watch anonymous chart ($ZED_RELATIVE_FILE)",
-  "anonymous task label changed",
-);
-assert(anonymousTask.command === "target/release/avenger", "anonymous task must use the release binary");
-assert(JSON.stringify(anonymousTask.args) === JSON.stringify([
-  "watch", "$ZED_FILE", "--project-root", "$ZED_WORKTREE_ROOT",
-]), "anonymous development task arguments changed");
-assert(
-  JSON.stringify(anonymousTask.tags) === JSON.stringify(["avenger-watch-anonymous"]),
-  "anonymous task tag changed",
-);
-
-for (const task of tasks) {
-  assert(task.cwd === "$ZED_WORKTREE_ROOT", "task cwd must be the worktree root");
-  assert(task.use_new_terminal === false && task.allow_concurrent_runs === true, "task rerun policy changed");
-  assert(task.reveal === "no_focus" && task.hide === "never" && task.save === "all", "task UI/save policy changed");
+// Files that Zed builds.
+const ignored = read(".gitignore").split(/\r?\n/);
+const tracked = path => execFileSync("git", ["ls-files", path], { cwd: root, encoding: "utf8" }).trim() !== "";
+for (const path of ["extension.wasm", "grammars/"]) {
+  assert(ignored.includes(path), `.gitignore must ignore ${path}`);
+  assert(!tracked(path), `${path} must not be committed`);
 }
-const runnables = read("languages/avenger/runnables.scm");
-assert(runnables.includes("(#set! tag avenger-watch-named)"), "named runnable tag changed");
-assert(runnables.includes("(#set! tag avenger-watch-anonymous)"), "anonymous runnable tag changed");
-assert(runnables.includes("@avenger_chart"), "named runnable must expose the chart binder");
 
-const skippedDirectories = new Set([".git", ".tmp", "grammars", "node_modules"]);
-const walk = directory => readdirSync(directory).flatMap(name => {
-  const path = resolve(directory, name);
-  return statSync(path).isDirectory()
-    ? (skippedDirectories.has(name) ? [] : walk(path))
-    : [path];
-});
-const localPaths = walk(root);
-assert(read(".gitignore").split(/\r?\n/).includes("extension.wasm"), "Zed's generated extension.wasm must be ignored");
-
-console.log("extension package contract is valid");
+if (failures.length > 0) {
+  console.error(failures.join("\n"));
+  process.exit(1);
+}
+console.log("the extension's package is valid");

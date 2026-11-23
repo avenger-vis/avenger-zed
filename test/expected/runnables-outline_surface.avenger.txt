@@ -1,3 +1,0 @@
-run 3:7-3:12 "chart"
-_avenger_kind 3:13-3:24 "acme.custom"
-avenger_chart 3:28-3:32 "demo"

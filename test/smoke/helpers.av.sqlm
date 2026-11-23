@@ -1,0 +1,4 @@
+MODULE spike.helpers;
+
+--| Twice a number.
+CREATE PUBLIC FUNCTION twice(x FLOAT64) AS (x * 2);

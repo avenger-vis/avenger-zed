@@ -1,3 +1,0 @@
-run 2:0-2:5 "chart"
-_avenger_kind 2:6-2:12 "custom"
-avenger_chart 2:16-2:29 "state_actions"

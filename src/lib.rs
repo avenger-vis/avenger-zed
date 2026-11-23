@@ -115,7 +115,7 @@ fn resolve_launch(
     } else if environment.is_avenger_monorepo {
         let release_avenger = environment.release_avenger.ok_or_else(|| {
             "Avenger release binary not found at `target/release/avenger`. Run \
-             `cargo build --release -p avenger-lang-cli --bin avenger` from the Avenger \
+             `cargo build --release -p avenger-cli --bin avenger` from the Avenger \
              repository, then restart the language server."
                 .to_owned()
         })?;
@@ -140,7 +140,7 @@ fn resolve_launch(
 }
 
 fn is_avenger_monorepo(manifest: &str) -> bool {
-    manifest.contains("avenger-lang-cli") && manifest.contains("[workspace]")
+    manifest.contains("avenger-cli") && manifest.contains("[workspace]")
 }
 
 #[cfg(test)]
@@ -198,7 +198,7 @@ mod tests {
         detected.is_avenger_monorepo = true;
         let error = resolve_launch(LaunchSettings::default(), detected).unwrap_err();
         assert!(error.contains("target/release/avenger"));
-        assert!(error.contains("cargo build --release -p avenger-lang-cli --bin avenger"));
+        assert!(error.contains("cargo build --release -p avenger-cli --bin avenger"));
     }
 
     #[test]
@@ -219,10 +219,10 @@ mod tests {
     #[test]
     fn monorepo_detection_requires_workspace_and_cli_member() {
         assert!(is_avenger_monorepo(
-            "[workspace]\nmembers = [\"avenger-lang-cli\"]"
+            "[workspace]\nmembers = [\"avenger-cli\"]"
         ));
         assert!(!is_avenger_monorepo(
-            "[package]\nname = \"avenger-lang-cli\""
+            "[package]\nname = \"avenger-cli\""
         ));
     }
 }

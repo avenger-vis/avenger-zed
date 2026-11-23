@@ -6,11 +6,9 @@
   "packageManager": "pnpm@11.9.0",
   "scripts": {
     "check": "node scripts/check_extension.mjs",
-    "check:query-contract": "node scripts/check_query_contract.mjs",
-    "measure:queries": "node scripts/measure_queries.mjs",
     "sync:queries": "node scripts/sync_queries.mjs",
-    "test:queries": "node scripts/test_queries.mjs",
-    "test": "node scripts/check_extension.mjs && node scripts/sync_queries.mjs --check && node scripts/check_query_contract.mjs && node scripts/test_queries.mjs"
+    "test:fixtures": "node scripts/test_fixtures.mjs",
+    "test": "node scripts/check_extension.mjs && node scripts/sync_queries.mjs --check && node scripts/test_fixtures.mjs"
   },
   "devDependencies": {
     "tree-sitter-cli": "0.26.3"

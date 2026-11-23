@@ -21,12 +21,19 @@ jobs:
         with:
           path: avenger-zed
 
-      - name: Check out pinned grammar
+      - name: Check out the pinned avenger-sql grammars
         uses: actions/checkout@v4
         with:
-          repository: avenger-vis/tree-sitter-avenger
-          ref: 8f1353e75f24c0373290affef13ca3f940c2f471
-          path: tree-sitter-avenger
+          repository: avenger-vis/tree-sitter-avenger-sql
+          ref: 44d1639307431923a0a73186e269bf65bbf22b4a
+          path: tree-sitter-avenger-sql
+
+      - name: Check out the pinned Typst grammar
+        uses: actions/checkout@v4
+        with:
+          repository: avenger-vis/tree-sitter-avenger-typst
+          ref: 5c830ae2686f46d195456dec3f475024cfc52e7d
+          path: tree-sitter-avenger-typst
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -36,14 +43,14 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20.19.6
+          node-version: 24
           cache: pnpm
           cache-dependency-path: avenger-zed/pnpm-lock.yaml
 
       - name: Set up Rust extension target
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-wasip1
+          targets: wasm32-wasip2
 
       - name: Install test tools
         run: pnpm install --frozen-lockfile
@@ -58,21 +65,13 @@ jobs:
         working-directory: avenger-zed
 
       - name: Build Rust LSP adapter for Zed
-        run: cargo check --locked --target wasm32-wasip1
+        run: cargo check --locked --target wasm32-wasip2
         working-directory: avenger-zed
 
-      - name: Verify grammar-owned query copies
-        run: pnpm sync:queries -- --grammar-root ../tree-sitter-avenger --check
+      - name: Verify the copies of the grammars' queries
+        run: pnpm sync:queries -- --grammars .. --check
         working-directory: avenger-zed
 
-      - name: Audit query node contract
-        run: pnpm check:query-contract -- --grammar-root ../tree-sitter-avenger
-        working-directory: avenger-zed
-
-      - name: Test queries and capture baselines
-        run: pnpm test:queries -- --grammar-root ../tree-sitter-avenger
-        working-directory: avenger-zed
-
-      - name: Measure query performance
-        run: pnpm measure:queries -- --grammar-root ../tree-sitter-avenger
+      - name: Parse the smoke scripts
+        run: pnpm test:fixtures -- --grammars ..
         working-directory: avenger-zed

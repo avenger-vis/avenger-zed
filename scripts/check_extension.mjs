@@ -28,12 +28,13 @@ for (const expected of [
 ]) assert(manifest.includes(expected), `extension.toml is missing ${expected}`);
 assert(!manifest.includes("file://"), "extension.toml must not name a file:// repository");
 
-// The grammars: avenger-sql's three grammars come from one revision of their repository, and CI
-// checks out each repository at its revision.
+// The grammars: tree-sitter-avenger-sql's four grammars, avenger-sql's three and the vendored
+// grammar of Quarto Markdown, come from one revision of their repository, and CI checks out each
+// repository at its revision.
 const pinned = grammars();
 const byName = new Map(pinned.map(grammar => [grammar.name, grammar]));
 assert(
-  JSON.stringify([...byName.keys()]) === JSON.stringify(["avenger_sql", "avenger_format", "avenger_datetime", "avenger_typst"]),
+  JSON.stringify([...byName.keys()]) === JSON.stringify(["avenger_sql", "avenger_format", "avenger_datetime", "avenger_qmd", "avenger_typst"]),
   `extension.toml's grammars are ${[...byName.keys()].join(", ")}`,
 );
 const revisions = new Map();
@@ -52,12 +53,14 @@ for (const [repository, rev] of revisions) {
 }
 
 // The languages: each names a grammar of the manifest, every grammar has a language, and only
-// Avenger SQL is visible, since the others are only injected.
+// Avenger SQL and Avenger Quarto are visible, since the others are only injected.
+const VISIBLE = new Set(["Avenger SQL", "Avenger Quarto"]);
 const found = languages();
 for (const language of found) {
   assert(byName.has(language.grammar), `${language.name} names the grammar ${language.grammar}, which extension.toml lacks`);
-  assert(language.hidden === (language.name !== "Avenger SQL"), `${language.name} must ${language.hidden ? "not " : ""}be hidden`);
+  assert(language.hidden === !VISIBLE.has(language.name), `${language.name} must ${language.hidden ? "not " : ""}be hidden`);
 }
+for (const name of VISIBLE) assert(found.some(language => language.name === name), `no language is named ${name}`);
 for (const grammar of pinned) {
   assert(found.some(language => language.grammar === grammar.name), `no language uses the grammar ${grammar.name}`);
 }
@@ -68,12 +71,24 @@ for (const expected of [
   "tab_size = 4",
   "hard_tabs = false",
 ]) assert(sql.includes(expected), `languages/avenger-sql/config.toml is missing ${expected}`);
+// Quarto 2 documents: `av.qmd`, longer than the `qmd` of other extensions' Quarto, so Zed opens
+// them here whichever extension loads last, on the vendored grammar.
+const quarto = read("languages/avenger-quarto/config.toml");
+for (const expected of [
+  'grammar = "avenger_qmd"',
+  'path_suffixes = ["av.qmd"]',
+]) assert(quarto.includes(expected), `languages/avenger-quarto/config.toml is missing ${expected}`);
 
 // Zed finds an injected language by its name or a file suffix of a language: one of the
-// extension's, or one that Zed bundles.
-const BUNDLED = new Set(["json", "regex"]);
+// extension's, one that Zed bundles, or one that one of Zed's extensions installs, which a
+// document injects only when the user has the extension. A cell's own language, which its braces
+// name, is the document's to resolve and isn't checked.
+const BUNDLED = new Set(["json", "regex", "yaml", "html", "javascript"]);
+const FROM_EXTENSIONS = new Set(["latex"]);
 const resolves = name =>
-  BUNDLED.has(name) || found.some(language => language.name === name || language.suffixes.includes(name));
+  BUNDLED.has(name) ||
+  FROM_EXTENSIONS.has(name) ||
+  found.some(language => language.name === name || language.suffixes.includes(name));
 for (const language of found) {
   const path = resolve(language.directory, "injections.scm");
   if (!existsSync(path)) continue;
@@ -210,6 +225,7 @@ if (existsSync(resolve(root, schemaPath))) {
   assert(false, `missing ${schemaPath}`);
 }
 assert(/^debuggers = \["avenger"\]$/m.test(sql), 'languages/avenger-sql/config.toml must name the debugger, debuggers = ["avenger"]');
+assert(/^debuggers = \["avenger"\]$/m.test(quarto), 'languages/avenger-quarto/config.toml must name the debugger, debuggers = ["avenger"]');
 for (const hook of [
   "fn get_dap_binary(",
   "fn dap_request_kind(",

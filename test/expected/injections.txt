@@ -1,0 +1,1 @@
+vega/report.av.qmd: 2 yaml, 16 avenger-sql, 24 latex, 26 latex, 31 avenger-sql, 44 python, 48 html

@@ -1,0 +1,18 @@
+name = "Avenger Quarto"
+grammar = "avenger_qmd"
+# Quarto 2 documents with avenger cells. `av.qmd` is longer than the `qmd` of other extensions'
+# Quarto, and Zed picks a file's language by its longest suffix, so these documents open here
+# whichever extension loads last, while plain `.qmd` files stay with the others.
+path_suffixes = ["av.qmd"]
+block_comment = { start = "<!-- ", prefix = "", end = " -->", tab_size = 0 }
+# A cross-reference, `@fig-weather`, is one word.
+word_characters = ["-", "@"]
+# The debug adapter of `extension.toml`, whose locator gives the cells' run arrows a Debug entry.
+debuggers = ["avenger"]
+brackets = [
+  { start = "{", end = "}", close = true, newline = true },
+  { start = "[", end = "]", close = true, newline = true },
+  { start = "(", end = ")", close = true, newline = true },
+  { start = "\"", end = "\"", close = true, newline = false },
+  { start = "`", end = "`", close = true, newline = false },
+]

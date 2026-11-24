@@ -32,7 +32,7 @@ FROM wet_days
 |> AGGREGATE COUNT(*) AS days GROUP BY weather;
 
 FROM wet_days
-|> AGGREGATE mark_bar(x => weather, y => COUNT(*)) AS chart
+|> AGGREGATE mark_bar(x => weather, y => COUNT(*), title => title('Wet days', syntax => 'plain_lines')) AS chart
 ```
 
 ## Elsewhere

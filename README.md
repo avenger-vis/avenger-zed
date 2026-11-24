@@ -5,7 +5,7 @@ Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of 
 - scripts (`.av.sql`) and modules (`.av.sqlm`) open as **Avenger SQL**, and ```` ```avenger-sql ````
   fences in Markdown and `{avenger-sql}` cells of Quarto documents take its highlighting;
 - Quarto 2 documents with avenger cells (`.av.qmd`) open as **Avenger Quarto**, on Quarto 2's own
-  grammar of Quarto Markdown;
+  grammar of Quarto Markdown, with Quarto 2's language server beside avenger's;
 - highlighting from the Tree-sitter grammar
   [tree-sitter-avenger-sql](https://github.com/avenger-vis/tree-sitter-avenger-sql), with
   injections into the strings that hold another language: the Typst markup of titles and labels,
@@ -66,6 +66,7 @@ them:
 {
   "languages": {
     "Avenger SQL": { "semantic_tokens": "combined" },
+    "Avenger Quarto": { "semantic_tokens": "combined" },
     "Quarto": { "semantic_tokens": "combined" }
   }
 }
@@ -180,6 +181,21 @@ Avenger Quarto parses with Quarto 2's own grammar of Quarto Markdown, the parser
 - the outline shows each section by its heading and the cells in it;
 - in Vim mode, `ac` and `ic` select a section, a div such as a callout, or a cell.
 
+Two language servers serve a document: `avenger lsp` in its cells, as in a script, and Quarto 2's, `q2 lsp`, for the document: its parse errors and, with `"semantic_tokens": "combined"` for Avenger Quarto, its colors of Quarto's syntax, which `languages/avenger-quarto/semantic_token_rules.json` maps to the theme's. The extension starts Quarto 2's server, `quarto2-lsp`, over stdio, chosen in this order:
+
+1. an explicit `lsp.quarto2-lsp.binary.path` setting;
+2. `quarto2` from the worktree shell's `PATH`, the command that q2's plans name after its 0.x releases;
+3. `q2` from it, the command of q2 until then;
+4. otherwise, an error that says how to install q2, configure it, or turn the server off.
+
+Install q2 with `brew install quarto-dev/tap/q2`, or as [q2's README](https://github.com/quarto-dev/q2) says. A document without q2 keeps its colors, outline, and avenger's server. To turn Quarto 2's server off:
+
+```json
+{ "languages": { "Avenger Quarto": { "language_servers": ["!quarto2-lsp", "..."] } } }
+```
+
+Only Avenger Quarto takes Quarto 2's server: its syntax is stricter than Quarto 1's, which a plain `.qmd` file of the Quarto language may be written in.
+
 ## Grammars and queries
 
 The extension registers five grammars, each pinned to a full revision in `extension.toml`:
@@ -217,7 +233,7 @@ pinned grammars into a `grammars/` directory here, which is ignored. After a cha
 
 ## Development and checks
 
-The extension's Rust runtime only chooses and configures the processes of the language server and the debugger, and turns the run arrows' task into a debug scenario. Node and
+The extension's Rust runtime only chooses and configures the processes of the language servers and the debugger, and turns the run arrows' task into a debug scenario. Node and
 pnpm run the package's checks, with Node 24, pnpm 11.9.0, Tree-sitter CLI 0.26.3, and the
 current stable Rust `wasm32-wasip2` target.
 

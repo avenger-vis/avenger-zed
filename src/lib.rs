@@ -8,7 +8,31 @@ use zed::{
 };
 use zed_extension_api as zed;
 
-const LANGUAGE_SERVER_NAME: &str = "avenger-lsp";
+/// The language servers of `extension.toml`: avenger's, `avenger lsp`, for Avenger SQL, Avenger
+/// Quarto, and Quarto, and Quarto 2's, `q2 lsp`, for Avenger Quarto.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Server {
+    Avenger,
+    Quarto2,
+}
+
+impl Server {
+    fn of(id: &zed::LanguageServerId) -> zed::Result<Self> {
+        match id.as_ref() {
+            "avenger-lsp" => Ok(Server::Avenger),
+            "quarto2-lsp" => Ok(Server::Quarto2),
+            _ => Err(format!("unsupported language server `{id}`")),
+        }
+    }
+
+    /// The server's id, the key of its settings under `lsp`.
+    fn id(self) -> &'static str {
+        match self {
+            Server::Avenger => "avenger-lsp",
+            Server::Quarto2 => "quarto2-lsp",
+        }
+    }
+}
 /// The name of the debug adapter, `avenger dap`, and of the locator that turns the run arrows' task
 /// into its scenarios.
 const DEBUG_ADAPTER_NAME: &str = "avenger";
@@ -26,8 +50,8 @@ impl zed::Extension for AvengerExtension {
         language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> zed::Result<zed::Command> {
-        validate_language_server_id(language_server_id)?;
-        let settings = LspSettings::for_worktree(LANGUAGE_SERVER_NAME, worktree)?;
+        let server = Server::of(language_server_id)?;
+        let settings = LspSettings::for_worktree(server.id(), worktree)?;
         let (path, arguments, env) = settings.binary.map_or_else(
             || (None, None, BTreeMap::new()),
             |binary| {
@@ -38,15 +62,19 @@ impl zed::Extension for AvengerExtension {
                 )
             },
         );
-        let launch = resolve_launch(
-            Process::LanguageServer,
-            LaunchSettings {
-                path,
-                arguments,
-                env,
-            },
-            launch_environment(worktree),
-        )?;
+        let settings = LaunchSettings {
+            path,
+            arguments,
+            env,
+        };
+        let launch = match server {
+            Server::Avenger => resolve_launch(
+                Process::LanguageServer,
+                settings,
+                launch_environment(worktree),
+            )?,
+            Server::Quarto2 => resolve_quarto2_launch(settings, quarto2_environment(worktree))?,
+        };
         Ok(zed::Command {
             command: launch.command,
             args: launch.args,
@@ -59,8 +87,8 @@ impl zed::Extension for AvengerExtension {
         language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> zed::Result<Option<zed::serde_json::Value>> {
-        validate_language_server_id(language_server_id)?;
-        Ok(LspSettings::for_worktree(LANGUAGE_SERVER_NAME, worktree)?.initialization_options)
+        let server = Server::of(language_server_id)?;
+        Ok(LspSettings::for_worktree(server.id(), worktree)?.initialization_options)
     }
 
     fn language_server_workspace_configuration(
@@ -68,8 +96,8 @@ impl zed::Extension for AvengerExtension {
         language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> zed::Result<Option<zed::serde_json::Value>> {
-        validate_language_server_id(language_server_id)?;
-        Ok(LspSettings::for_worktree(LANGUAGE_SERVER_NAME, worktree)?.settings)
+        let server = Server::of(language_server_id)?;
+        Ok(LspSettings::for_worktree(server.id(), worktree)?.settings)
     }
 
     /// `avenger dap`, found as the language server is, which runs in the worktree's root, since a
@@ -181,14 +209,6 @@ impl zed::Extension for AvengerExtension {
 }
 
 zed::register_extension!(AvengerExtension);
-
-fn validate_language_server_id(id: &zed::LanguageServerId) -> zed::Result<()> {
-    if id.as_ref() == LANGUAGE_SERVER_NAME {
-        Ok(())
-    } else {
-        Err(format!("unsupported language server `{id}`"))
-    }
-}
 
 fn validate_debug_adapter_name(name: &str) -> zed::Result<()> {
     if name == DEBUG_ADAPTER_NAME {
@@ -337,6 +357,49 @@ fn resolve_launch(
     })
 }
 
+/// What the worktree tells of Quarto 2's binaries on the shell's `PATH`: `quarto2`, which q2's
+/// plans name as its command after its 0.x releases, and `q2`, its command until then.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+struct Quarto2Environment {
+    quarto2: Option<String>,
+    q2: Option<String>,
+    shell_env: BTreeMap<String, String>,
+}
+
+fn quarto2_environment(worktree: &zed::Worktree) -> Quarto2Environment {
+    Quarto2Environment {
+        quarto2: worktree.which("quarto2"),
+        q2: worktree.which("q2"),
+        shell_env: worktree.shell_env().into_iter().collect(),
+    }
+}
+
+/// The command of Quarto 2's language server, from the first of: the binary of the user's
+/// setting, `quarto2` on the shell's `PATH`, and `q2` on it, with the arguments `lsp`.
+fn resolve_quarto2_launch(
+    settings: LaunchSettings,
+    environment: Quarto2Environment,
+) -> Result<LaunchCommand, String> {
+    let explicit_path = settings.path.filter(|path| !path.trim().is_empty());
+    let command = explicit_path
+        .or(environment.quarto2)
+        .or(environment.q2)
+        .ok_or_else(|| {
+            "Quarto 2's language server not found. Install q2 (`brew install \
+             quarto-dev/tap/q2`) or configure `lsp.quarto2-lsp.binary.path` in Zed settings; \
+             or turn it off with `\"languages\": { \"Avenger Quarto\": { \"language_servers\": \
+             [\"!quarto2-lsp\", \"...\"] } }`."
+                .to_owned()
+        })?;
+    let mut env = environment.shell_env;
+    env.extend(settings.env);
+    Ok(LaunchCommand {
+        command,
+        args: settings.arguments.unwrap_or_else(|| vec!["lsp".to_owned()]),
+        env,
+    })
+}
+
 fn is_avenger_monorepo(manifest: &str) -> bool {
     manifest.contains("avenger-cli") && manifest.contains("[workspace]")
 }
@@ -415,6 +478,66 @@ mod tests {
         .unwrap();
         assert_eq!(command.command, "/usr/local/bin/avenger");
         assert_eq!(command.args, ["lsp"]);
+    }
+
+    fn quarto2_environment() -> Quarto2Environment {
+        Quarto2Environment {
+            quarto2: None,
+            q2: Some("/opt/homebrew/bin/q2".into()),
+            shell_env: BTreeMap::from([("PATH".into(), "/opt/homebrew/bin".into())]),
+        }
+    }
+
+    #[test]
+    fn servers_are_known_by_their_ids() {
+        assert_eq!(Server::Avenger.id(), "avenger-lsp");
+        assert_eq!(Server::Quarto2.id(), "quarto2-lsp");
+    }
+
+    #[test]
+    fn quarto2_starts_q2_lsp_from_the_shell_path() {
+        let command =
+            resolve_quarto2_launch(LaunchSettings::default(), quarto2_environment()).unwrap();
+        assert_eq!(command.command, "/opt/homebrew/bin/q2");
+        assert_eq!(command.args, ["lsp"]);
+        assert_eq!(command.env["PATH"], "/opt/homebrew/bin");
+    }
+
+    #[test]
+    fn quarto2_prefers_the_quarto2_command() {
+        let mut detected = quarto2_environment();
+        detected.quarto2 = Some("/usr/local/bin/quarto2".into());
+        let command = resolve_quarto2_launch(LaunchSettings::default(), detected).unwrap();
+        assert_eq!(command.command, "/usr/local/bin/quarto2");
+    }
+
+    #[test]
+    fn quarto2_explicit_binary_has_highest_precedence() {
+        let mut detected = quarto2_environment();
+        detected.quarto2 = Some("/usr/local/bin/quarto2".into());
+        let command = resolve_quarto2_launch(
+            LaunchSettings {
+                path: Some("/custom/q2".into()),
+                arguments: Some(vec!["lsp".into(), "-v".into()]),
+                env: BTreeMap::from([("RUST_LOG".into(), "debug".into())]),
+            },
+            detected,
+        )
+        .unwrap();
+        assert_eq!(command.command, "/custom/q2");
+        assert_eq!(command.args, ["lsp", "-v"]);
+        assert_eq!(command.env["RUST_LOG"], "debug");
+        assert!(command.env.contains_key("PATH"));
+    }
+
+    #[test]
+    fn missing_quarto2_names_how_to_install_configure_and_turn_it_off() {
+        let error =
+            resolve_quarto2_launch(LaunchSettings::default(), Quarto2Environment::default())
+                .unwrap_err();
+        assert!(error.contains("brew install quarto-dev/tap/q2"));
+        assert!(error.contains("lsp.quarto2-lsp.binary.path"));
+        assert!(error.contains("!quarto2-lsp"));
     }
 
     #[test]

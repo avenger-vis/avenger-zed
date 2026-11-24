@@ -82,6 +82,24 @@ for (const language of found) {
   }
 }
 
+// Run arrows: each tag of runnables.scm has a task, which opens `avenger view` on the statement at
+// the arrow's line, one window for each file.
+const tags = [...read("languages/avenger-sql/runnables.scm").matchAll(/#set! tag ([A-Za-z0-9_-]+)/g)].map(m => m[1]);
+const tasks = JSON.parse(read("languages/avenger-sql/tasks.json"));
+assert(tags.length > 0, "runnables.scm sets no tag");
+for (const tag of tags) {
+  const task = tasks.find(task => task.tags?.includes(tag));
+  assert(task, `no task of tasks.json has the tag ${tag} of runnables.scm`);
+  if (!task) continue;
+  assert(task.command === "avenger", `the task of ${tag} must run avenger from PATH`);
+  assert(
+    JSON.stringify(task.args) === JSON.stringify(["view", "$ZED_FILE:$ZED_ROW"]),
+    `the task of ${tag} must open avenger view on $ZED_FILE:$ZED_ROW`,
+  );
+  assert(!task.label.includes("$ZED_ROW"), `the task of ${tag} must keep one window for each file`);
+  assert(task.use_new_terminal === false && task.allow_concurrent_runs === true, `the task of ${tag} must replace its window when it runs again`);
+}
+
 // Semantic token rules.
 const rules = JSON.parse(read("languages/avenger-sql/semantic_token_rules.json"));
 assert(Array.isArray(rules) && rules.every(rule => typeof rule.token_type === "string"), "semantic_token_rules.json must be a list of rules with token types");

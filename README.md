@@ -9,6 +9,7 @@ Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of 
   injections into the strings that hold another language: the Typst markup of titles and labels,
   the format patterns of charts and of `FORMAT_DATE` and its kin, the regular expressions of the
   regex functions, the values of date, time, and range literals, and JSON;
+- run arrows in the gutter on each query and table, which open `avenger view` on the statement;
 - the language server, `avenger lsp`, for Avenger SQL and for Quarto documents: diagnostics,
   completion, hover, navigation, and the rest of
   [avenger-cli](https://github.com/jonmmease/avenger/tree/main/avenger-cli)'s editor features,
@@ -79,6 +80,38 @@ Markdown's. A theme override makes it italic, for the theme in use:
 }
 ```
 
+## Run arrows
+
+Each statement of a script that has rows takes a run arrow in the gutter: each query, and each statement that makes a table, also in the `{avenger-sql}` cells of a Quarto document. A click opens `avenger view` on the statement at the arrow's line, a window that reloads as the project's files change:
+
+- the last query of a chart script, or of a cell, shows the chart, live, or the table of its result;
+- another query shows its rows;
+- a statement of a data script that makes a table, such as `LOAD DATA` or `CREATE VIEW`, shows the table's rows.
+
+Each file has one window: a click on another arrow of the same file replaces it. The task saves the open buffers first, and the window reloads when files are saved, so Zed's autosave makes it follow the text as it changes:
+
+```json
+{ "autosave": { "after_delay": { "milliseconds": 500 } } }
+```
+
+The arrows' task runs `avenger` from `PATH`. A project replaces it in its `.zed/tasks.json` with a task of the tag `avenger-view`, as an avenger checkout does to run its `target/release/avenger`:
+
+```json
+[
+  {
+    "label": "Avenger: View $ZED_RELATIVE_FILE",
+    "command": "target/release/avenger",
+    "args": ["view", "$ZED_FILE:$ZED_ROW"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "tags": ["avenger-view"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": true,
+    "reveal": "no_focus",
+    "save": "all"
+  }
+]
+```
+
 ## Grammars and queries
 
 The extension registers four grammars, each pinned to a full revision in `extension.toml`:
@@ -124,5 +157,5 @@ cargo check --locked --target wasm32-wasip2
 `pnpm test`, with the grammars' checkouts beside this repository, checks the package: the manifest and its pins, which CI's checkouts match, that every
 language that an injection names resolves to a language of the extension or of Zed, and the
 adapter. It then checks that the query copies match their grammars, and parses the scripts of
-`test/smoke/` with the pinned grammar while running the language's queries over them. The
+`test/smoke/` with the pinned grammar while running the language's queries over them, and compares their run arrows with `test/expected/runnables.txt`, which a change accepts by copying `test/output/runnables.txt` over it. The
 grammars' own repositories test the queries' captures.

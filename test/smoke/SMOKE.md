@@ -77,3 +77,15 @@ release, with the Zed version and the platform in the release's notes.
      numbers, their separators as punctuation, `America/Los_Angeles` as a constant, and
      `UNBOUNDED` as a built-in constant, over the special string color of the value.
    - `NUMERIC '1.25'` shows its value as a number, and `JSON '{"a": [1, 2]}'` Zed's JSON colors.
+9. **Run arrows.** With `avenger` on `PATH`, open `test/smoke/vega/` as a project:
+   - In `charts/heavy.av.sql`, the `CREATE TEMP TABLE`, the earlier query, and the chart's query
+     take arrows, and the `DECLARE` doesn't. In `data/vega_datasets.av.sql`, the external table and
+     the `LOAD DATA` take arrows, and `CREATE SCHEMA` doesn't. `modules/weather.av.sqlm` has none.
+   - A click on the chart's arrow opens the window in front, with the chart, and its title names
+     the statement. A click on the earlier query's arrow replaces the window with its rows.
+   - A click on the arrow of `CREATE VIEW wet_days` in `data/summaries.av.sql` shows the view's
+     rows, with its columns' types and its row count. The arrow of `CREATE TEMP TABLE heavy` there
+     shows the error of a data script's temporary table.
+   - In `report.qmd`, each cell's statements take arrows, and a click opens the cell's statement.
+   - An edit of the chart's query, saved, reloads the window, which keeps its statement.
+

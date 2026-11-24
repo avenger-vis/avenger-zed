@@ -102,22 +102,32 @@ for (const language of found) {
   }
 }
 
-// Run arrows: each tag of runnables.scm has a task, which opens `avenger view` on the statement at
-// the arrow's line, one window for each file.
-const tags = [...read("languages/avenger-sql/runnables.scm").matchAll(/#set! tag ([A-Za-z0-9_-]+)/g)].map(m => m[1]);
-const tasks = JSON.parse(read("languages/avenger-sql/tasks.json"));
-assert(tags.length > 0, "runnables.scm sets no tag");
-for (const tag of tags) {
-  const task = tasks.find(task => task.tags?.includes(tag));
-  assert(task, `no task of tasks.json has the tag ${tag} of runnables.scm`);
-  if (!task) continue;
-  assert(task.command === "avenger", `the task of ${tag} must run avenger from PATH`);
-  assert(
-    JSON.stringify(task.args) === JSON.stringify(["view", "$ZED_FILE:$ZED_ROW"]),
-    `the task of ${tag} must open avenger view on $ZED_FILE:$ZED_ROW`,
-  );
-  assert(!task.label.includes("$ZED_ROW"), `the task of ${tag} must keep one window for each file`);
-  assert(task.use_new_terminal === false && task.allow_concurrent_runs === true, `the task of ${tag} must replace its window when it runs again`);
+// Run arrows: each tag of a language's runnables.scm has a task of that language's tasks.json, which
+// runs what the tag is for, one terminal for each file that a second run replaces: Avenger SQL's
+// arrows open `avenger view` on the statement at the arrow's line, and Avenger Quarto's arrow
+// previews the document with q2. A server such as q2's preview never exits, and a task that can't
+// run concurrently would wait for it, so a second click replaces the running one.
+const TASKS = {
+  "avenger-view": { command: "avenger", args: ["view", "$ZED_FILE:$ZED_ROW"] },
+  "quarto2-preview": { command: "q2", args: ["preview", "$ZED_FILE"] },
+};
+const runnables = { "avenger-sql": ["avenger-view"], "avenger-quarto": ["quarto2-preview"] };
+for (const [language, expected] of Object.entries(runnables)) {
+  const tags = [...read(`languages/${language}/runnables.scm`).matchAll(/#set! tag ([A-Za-z0-9_-]+)/g)].map(m => m[1]);
+  const tasks = JSON.parse(read(`languages/${language}/tasks.json`));
+  assert(JSON.stringify(tags) === JSON.stringify(expected), `languages/${language}/runnables.scm must set the tags ${expected.join(", ")}`);
+  for (const tag of tags) {
+    const task = tasks.find(task => task.tags?.includes(tag));
+    assert(task, `no task of languages/${language}/tasks.json has the tag ${tag} of its runnables.scm`);
+    if (!task || !TASKS[tag]) continue;
+    assert(task.command === TASKS[tag].command, `the task of ${tag} must run ${TASKS[tag].command} from PATH`);
+    assert(
+      JSON.stringify(task.args) === JSON.stringify(TASKS[tag].args),
+      `the task of ${tag} must run ${TASKS[tag].command} ${TASKS[tag].args.join(" ")}`,
+    );
+    assert(!task.label.includes("$ZED_ROW"), `the task of ${tag} must keep one terminal for each file`);
+    assert(task.use_new_terminal === false && task.allow_concurrent_runs === true, `the task of ${tag} must replace its terminal when it runs again`);
+  }
 }
 
 // Indentation: indents.scm captures the starts of queries that config.toml's `|>` rule aligns to,

@@ -1,0 +1,14 @@
+[
+  {
+    "label": "Quarto 2: Preview $ZED_RELATIVE_FILE",
+    "command": "q2",
+    "args": ["preview", "$ZED_FILE"],
+    "cwd": "$ZED_DIRNAME",
+    "tags": ["quarto2-preview"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": true,
+    "reveal": "no_focus",
+    "hide": "never",
+    "save": "all"
+  }
+]

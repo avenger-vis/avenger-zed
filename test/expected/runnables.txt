@@ -14,3 +14,4 @@ vega/data/regions.av.sql: 2
 vega/data/summaries.av.sql: 2, 7, 12
 vega/data/vega_datasets.av.sql: 4, 7
 vega/modules/weather.av.sqlm: none
+vega/report.av.qmd: 1

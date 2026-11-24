@@ -187,3 +187,8 @@ release, with the Zed version and the platform in the release's notes.
       the buffer's language, Avenger Quarto's, which carries Avenger SQL's rule for it.
     - With `q2` off `PATH`, Zed's log shows the error that names how to install, configure, or
       turn off Quarto 2's server, and avenger's server still serves the cells.
+    - Line 1 has an arrow whose menu runs `Quarto 2: Preview report.av.qmd`: it opens the
+      browser on the document, and a second click starts the preview again in a new tab. With no
+      engine for avenger cells in the project, note what the page shows for them; with
+      `engine: markdown` in the front matter, they are code. With an engine, an edit of a cell and
+      a save redraw its chart.

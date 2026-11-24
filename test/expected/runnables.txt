@@ -4,8 +4,11 @@ injections.av.sql: 4
 reserved.av.sql: 6, 9
 scatter.av.sql: 2
 typst.av.sql: 3
+vega/charts/faceted.av.sql: 3
 vega/charts/heavy.av.sql: 4, 9, 12
+vega/charts/layers.av.sql: 3
 vega/charts/origins.av.sql: 2
+vega/charts/thresholds.av.sql: 5, 11
 vega/charts/weather/warm-days.av.sql: 4
 vega/data/regions.av.sql: 2
 vega/data/summaries.av.sql: 2, 7, 12

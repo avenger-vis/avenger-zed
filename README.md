@@ -9,6 +9,7 @@ Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of 
   injections into the strings that hold another language: the Typst markup of titles and labels,
   the format patterns of charts and of `FORMAT_DATE` and its kin, the regular expressions of the
   regex functions, the values of date, time, and range literals, and JSON;
+- indentation as you type, in the formatter's style;
 - run arrows in the gutter on each query and table, which open `avenger view` on the statement;
 - the language server, `avenger lsp`, for Avenger SQL and for Quarto documents: diagnostics,
   completion, hover, navigation, and the rest of
@@ -79,6 +80,10 @@ Markdown's. A theme override makes it italic, for the theme in use:
   }
 }
 ```
+
+## Indentation
+
+Return indents the new line as the formatter's style lays out pipe syntax, Google's layout with a unit of 4, so Avenger SQL's `tab_size` is 4: with another unit, the indentation as you type differs from what the formatter writes. A line keeps the indentation of the line before it, and goes 4 deeper after a line that leaves something open: a pipe operator's keywords with nothing after them, as `|> AGGREGATE`, a `|>` line that ends with a comma, an open bracket, or an expression that continues, as `|> WHERE x AND`. `END` goes back 4, and a `|>` goes back to the start of its query as you type it. A bracket's closer stays at the depth of its contents, and the language server moves it to its column, 3 deeper than the `|>` for a bracket that an operator's line opens, as `) AS chart`, or back to the line that opens the bracket. The server also corrects an operator's `GROUP BY`, `WINDOW`, `ON`, and `USING`, 3 deeper than the `|>`. It corrects a closer by deleting the spaces before it, so the cursor moves with the deletion, even after Return just before the closer.
 
 ## Run arrows
 
@@ -157,5 +162,5 @@ cargo check --locked --target wasm32-wasip2
 `pnpm test`, with the grammars' checkouts beside this repository, checks the package: the manifest and its pins, which CI's checkouts match, that every
 language that an injection names resolves to a language of the extension or of Zed, and the
 adapter. It then checks that the query copies match their grammars, and parses the scripts of
-`test/smoke/` with the pinned grammar while running the language's queries over them, and compares their run arrows with `test/expected/runnables.txt`, which a change accepts by copying `test/output/runnables.txt` over it. The
+`test/smoke/` with the pinned grammar while running the language's queries over them, and compares their run arrows and the ranges of `indents.scm` with `test/expected/runnables.txt` and `test/expected/indents.txt`, which a change accepts by copying its file of `test/output/` over it. It also tests `config.toml`'s indentation patterns against lines that they should and shouldn't match. The
 grammars' own repositories test the queries' captures.

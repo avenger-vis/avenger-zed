@@ -5,8 +5,49 @@ grammar = "avenger_sql"
 path_suffixes = ["av.sql", "av.sqlm", "avenger-sql"]
 line_comments = ["-- "]
 block_comment = { start = "/*", prefix = "", end = "*/", tab_size = 0 }
-tab_size = 2
+# The unit of the formatter's style, Google's layout of pipe syntax. With another unit, the
+# indentation as you type differs from what the formatter writes.
+tab_size = 4
 hard_tabs = false
+
+# Indentation as you type. Zed indents a new line from the line before it: one unit deeper, the
+# same, one unit less, or back to an earlier row. indents.scm gives the brackets and `CASE`, and these
+# patterns give the rest, as Zed's Python does for its blocks: a line keeps the indentation of the
+# line before it unless the line before it leaves something open, and a `|>` goes back to the start
+# of its query. The language server corrects the lines that the style puts 3 deeper than their `|>`,
+# an operator's clauses and the closers of the brackets that its line opens, and the closers of the
+# other brackets, which these leave at their contents' depth.
+
+# A line after one that leaves something open goes one unit deeper.
+increase_indent_pattern = '''(?xi)
+  ^\s*\|>\s*(
+    # A pipe operator's keywords with nothing after them yet.
+    SELECT(\s+(DISTINCT|ALL))?
+    | EXTEND | SET | DROP | RENAME | AGGREGATE | WHERE | LIMIT | CALL | WITH
+    | ORDER\s+BY
+    | PIVOT | UNPIVOT | TABLESAMPLE | MATCH_RECOGNIZE
+    | (NATURAL\s+)?((INNER|CROSS|(LEFT|RIGHT|FULL)(\s+OUTER)?)\s+)?JOIN
+    | (UNION|INTERSECT|EXCEPT)(\s+(ALL|DISTINCT))?
+  )\s*$
+  # A pipe operator's line that ends with a comma, before its next item.
+  | ^\s*\|>.*,\s*$
+  # An open bracket.
+  | [(\[]\s*$
+  # An expression that continues: a binary operator, AND or OR, or CASE, at the end of the line,
+  # and a slash that isn't the end of a block comment.
+  | (\bAND|\bOR|\bCASE|[-+*=<>|]|(^|[^*])/)\s*$
+'''
+
+# A line that starts with the END of a CASE goes one unit less. A bracket's closer stays at the depth
+# of its contents, and the language server moves it to the style's column by deleting spaces before
+# it, so the cursor moves with the deletion.
+decrease_indent_pattern = '''(?xi) ^\s*END\b'''
+
+# A `|>` goes back to the start of its query, the FROM that indents.scm captures as `start.query`,
+# as Python aligns `else:` with its `if`.
+decrease_indent_patterns = [
+  { pattern = '''^\s*\|>''', valid_after = ["query"] },
+]
 brackets = [
   { start = "(", end = ")", close = true, newline = true },
   { start = "[", end = "]", close = true, newline = true },

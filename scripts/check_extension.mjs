@@ -64,7 +64,7 @@ const sql = read("languages/avenger-sql/config.toml");
 for (const expected of [
   'path_suffixes = ["av.sql", "av.sqlm", "avenger-sql"]',
   'line_comments = ["-- "]',
-  "tab_size = 2",
+  "tab_size = 4",
   "hard_tabs = false",
 ]) assert(sql.includes(expected), `languages/avenger-sql/config.toml is missing ${expected}`);
 
@@ -99,6 +99,65 @@ for (const tag of tags) {
   assert(!task.label.includes("$ZED_ROW"), `the task of ${tag} must keep one window for each file`);
   assert(task.use_new_terminal === false && task.allow_concurrent_runs === true, `the task of ${tag} must replace its window when it runs again`);
 }
+
+// Indentation: indents.scm captures the starts of queries that config.toml's `|>` rule aligns to,
+// and config.toml's patterns match the lines they should. Zed compiles the patterns with Rust's
+// `regex` in verbose mode, `(?x)`, which JavaScript lacks, so the check drops their comments and
+// whitespace and reads `(?i)` as the `i` flag. The patterns use `\s` for every space they match.
+const indents = read("languages/avenger-sql/indents.scm");
+assert(indents.includes("@start.query"), "indents.scm must capture the starts of queries as @start.query");
+assert(!/\(pipe_[a-z_]+[\s\S]*?\)\s*@indent/.test(indents), "indents.scm must give pipe operators no range");
+assert(
+  !/"[)\]]" @end/.test(indents),
+  "indents.scm must leave a bracket's closer at its contents' depth, for the server's deletion to correct",
+);
+const toml = read("languages/avenger-sql/config.toml");
+const literal = key => toml.match(new RegExp(`^${key} = '''([\\s\\S]*?)'''`, "m"))?.[1];
+const toJs = source => {
+  const flags = /^\(\?[a-z]*i[a-z]*\)/.test(source.trimStart()) ? "i" : "";
+  const body = source
+    .trimStart()
+    .replace(/^\(\?[a-z]+\)/, "")
+    .split("\n")
+    .map(line => line.replace(/#.*$/, ""))
+    .join("")
+    .replace(/\s+/g, "");
+  return new RegExp(body, flags);
+};
+const patterns = {
+  increase: [
+    literal("increase_indent_pattern"),
+    [
+      "|> AGGREGATE", "  |> aggregate ", "|> SELECT DISTINCT", "|> ORDER BY", "|> WHERE",
+      "|> LEFT OUTER JOIN", "|> CROSS JOIN", "|> JOIN", "|> UNION ALL", "|> TABLESAMPLE",
+      "|> SELECT a,", "|> AGGREGATE mark_bar(", "CREATE VIEW v AS (", "    x => [",
+      "|> WHERE x AND", "|> WHERE x OR", "|> WHERE x >", "|> EXTEND CASE", "    a ||", "|> SELECT x /",
+    ],
+    [
+      "|> WHERE x", "|> DISTINCT", "|> AS t", "|> SELECT a, b", "FROM t", "    count(*) AS n,",
+      "|> WHERE brand", "|> WHERE x /* note */", "|> AGGREGATE COUNT(*) AS n", "|> LIMIT 10",
+      "    AND y", "-- a comment", "   ) AS chart",
+    ],
+  ],
+  decrease: [
+    literal("decrease_indent_pattern"),
+    ["END", "  end AS x", "    END"],
+    ["|> WHERE x", ")", "   ) AS chart", "]", "ENDING", "    a,"],
+  ],
+  pipe: [
+    toml.match(/pattern = '''(.*?)''', valid_after = \["query"\]/)?.[1],
+    ["|> WHERE x", "    |> AGGREGATE", "|>"],
+    ["FROM t |> WHERE x", "    AND y", "-- |> a comment"],
+  ],
+};
+for (const [name, [source, should, shouldNot]] of Object.entries(patterns)) {
+  assert(source, `config.toml has no ${name} pattern`);
+  if (!source) continue;
+  const regex = toJs(source);
+  for (const line of should) assert(regex.test(line), `the ${name} pattern must match ${JSON.stringify(line)}`);
+  for (const line of shouldNot) assert(!regex.test(line), `the ${name} pattern must not match ${JSON.stringify(line)}`);
+}
+assert(/^tab_size = 4$/m.test(toml), "config.toml's tab_size must be 4, the style's unit");
 
 // Semantic token rules.
 const rules = JSON.parse(read("languages/avenger-sql/semantic_token_rules.json"));

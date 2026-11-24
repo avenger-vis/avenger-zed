@@ -13,8 +13,8 @@ The heavy cars of each origin, from `data/summaries.av.sql`, in @fig-origins.
 :::
 
 ```{avenger-sql}
---| label: fig-origins
---| fig-cap: Heavy cars by origin
+#| label: fig-origins
+#| fig-cap: Heavy cars by origin
 FROM heavy_by_origin
 |> AGGREGATE mark_bar(x => Origin, y => cars) AS chart
 ```

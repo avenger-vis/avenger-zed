@@ -9,6 +9,8 @@ block_comment = { start = "/*", prefix = "", end = "*/", tab_size = 0 }
 # indentation as you type differs from what the formatter writes.
 tab_size = 4
 hard_tabs = false
+# The debug adapter of `extension.toml`, whose locator gives the run arrows a Debug entry.
+debuggers = ["avenger"]
 
 # Indentation as you type. Zed indents a new line from the line before it: one unit deeper, the
 # same, one unit less, or back to an earlier row. indents.scm gives the brackets and `CASE`, and these

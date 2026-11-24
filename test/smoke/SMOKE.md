@@ -2,7 +2,8 @@
 
 The checks of the extension in a running Zed, which the scripts can't make: that Zed builds and
 loads the grammars, which files open as Avenger SQL, the colors of the queries and the injections,
-the server's semantic tokens over them, and the server in Quarto's cells. Run them before a
+the server's semantic tokens over them, the server in Quarto's cells, the run arrows, and the
+debugger. Run them before a
 release, with the Zed version and the platform in the release's notes.
 
 ## Setup
@@ -22,6 +23,12 @@ release, with the Zed version and the platform in the release's notes.
    A `binary.path` setting bypasses the extension: Zed starts the path itself with
    `binary.arguments`, or no arguments, so the setting needs `"arguments": ["lsp"]`. Without the
    setting, in an avenger checkout, the extension starts `target/release/avenger lsp`.
+
+   For check 11, the debugger's binary, which the extension starts with `dap`:
+
+   ```json
+   "dap": { "avenger": { "binary": "/path/to/avenger" } }
+   ```
 4. For check 5, install the `Quarto` extension from Zed's registry.
 5. Open this directory, `test/smoke/`, as a project.
 
@@ -81,12 +88,14 @@ release, with the Zed version and the platform in the release's notes.
    - In `charts/heavy.av.sql`, the `CREATE TEMP TABLE`, the earlier query, and the chart's query
      take arrows, and the `DECLARE` doesn't. In `data/vega_datasets.av.sql`, the external table and
      the `LOAD DATA` take arrows, and `CREATE SCHEMA` doesn't. `modules/weather.av.sqlm` has none.
-   - A click on the chart's arrow opens the window in front, with the chart, and its title names
-     the statement. A click on the earlier query's arrow replaces the window with its rows.
-   - A click on the arrow of `CREATE VIEW wet_days` in `data/summaries.av.sql` shows the view's
+   - A click on an arrow opens a menu of Run and Debug. Run from the chart's arrow opens the
+     window in front, with the chart, and its title names the statement. Run from the earlier
+     query's arrow replaces the window with its rows.
+   - Run from the arrow of `CREATE VIEW wet_days` in `data/summaries.av.sql` shows the view's
      rows, with its columns' types and its row count. The arrow of `CREATE TEMP TABLE heavy` there
      shows the error of a data script's temporary table.
-   - In `report.qmd`, each cell's statements take arrows, and a click opens the cell's statement.
+   - In `report.qmd`, each cell's statements take arrows, and a click runs the cell's statement
+     at once, without a menu, unless the settings of check 11 name the debugger for Quarto.
    - An edit of the chart's query, saved, reloads the window, which keeps its statement.
 10. **Indentation.** In a new `.av.sql` file of `test/smoke/`, with `avenger lsp` of avenger's
     `main` once its formatter writes the style of `indent.av.sql`:
@@ -108,4 +117,21 @@ release, with the Zed version and the platform in the release's notes.
     - `CREATE VIEW v AS (` and Return: 4; `)` stays at 4, then the server moves it to 0.
     - Each of these in a cell of `vega/report.qmd`.
     - The cursor never stays behind the indentation.
-
+11. **Debugging.** With the debugger's binary of the setup, from avenger's `main` once it has
+    `avenger dap`, open `test/smoke/vega/` as a project:
+    - In `charts/origins.av.sql`, a click in the gutter of each `|>` line, 3 and 4, sets a
+      breakpoint. On line 2, the arrow's row, a right-click in the gutter sets one.
+    - Debug from the arrow's menu: the window opens and shows the rows that enter `JOIN`, Zed
+      marks line 3, and **Variables** shows `Stage`, with the columns of `heavy_by_origin`, and
+      `Script`.
+    - Step Over moves to the rows that enter `AGGREGATE` and marks line 4. `debugger: step back`
+      from the command palette returns to line 3.
+    - Continue stops at line 4 again, and Continue once more reaches the breakpoint of line 2, the
+      `result` frame, with the chart in the window and `Result` in **Variables**. Stop closes the
+      window.
+    - A breakpoint on line 1, the comment, stays where it is drawn, and the debug console says
+      that it takes no stop: no statement holds the line.
+    - `debugger: start` lists the scenario `Debug origins` of `.zed/debug.json`, which stops on
+      entry at line 3.
+    - In `report.qmd`, with `"languages": { "Quarto": { "debuggers": ["avenger"] } }` in Zed's
+      settings, the first cell's arrow offers Debug, and a breakpoint on line 10 stops there.

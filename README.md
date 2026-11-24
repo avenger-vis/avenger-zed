@@ -10,7 +10,10 @@ Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of 
   the format patterns of charts and of `FORMAT_DATE` and its kin, the regular expressions of the
   regex functions, the values of date, time, and range literals, and JSON;
 - indentation as you type, in the formatter's style;
-- run arrows in the gutter on each query and table, which open `avenger view` on the statement;
+- run arrows in the gutter on each query and table, which open `avenger view` on the statement
+  or debug it;
+- the debugger, `avenger dap`, which stops at a query's stages, with breakpoints on its `|>` lines
+  and the rows of each stop in Zed's debugger and in the viewer's window;
 - the language server, `avenger lsp`, for Avenger SQL and for Quarto documents: diagnostics,
   completion, hover, navigation, and the rest of
   [avenger-cli](https://github.com/jonmmease/avenger/tree/main/avenger-cli)'s editor features,
@@ -87,13 +90,13 @@ Return indents the new line as the formatter's style lays out pipe syntax, Googl
 
 ## Run arrows
 
-Each statement of a script that has rows takes a run arrow in the gutter: each query, and each statement that makes a table, also in the `{avenger-sql}` cells of a Quarto document. A click opens `avenger view` on the statement at the arrow's line, a window that reloads as the project's files change:
+Each statement of a script that has rows takes a run arrow in the gutter: each query, and each statement that makes a table, also in the `{avenger-sql}` cells of a Quarto document. A click on an arrow of a script opens a menu of **Run** and **Debug**, since the arrows' task has a debug scenario (see [Debugging](#debugging)); a cell's arrow runs at once, unless the Quarto language names the debugger. **Run** opens `avenger view` on the statement at the arrow's line, a window that reloads as the project's files change:
 
 - the last query of a chart script, or of a cell, shows the chart, live, or the table of its result;
 - another query shows its rows;
 - a statement of a data script that makes a table, such as `LOAD DATA` or `CREATE VIEW`, shows the table's rows.
 
-Each file has one window: a click on another arrow of the same file replaces it. The task saves the open buffers first, and the window reloads when files are saved, so Zed's autosave makes it follow the text as it changes:
+Each file has one window: a Run from another arrow of the same file replaces it. The task saves the open buffers first, and the window reloads when files are saved, so Zed's autosave makes it follow the text as it changes:
 
 ```json
 { "autosave": { "after_delay": { "milliseconds": 500 } } }
@@ -115,6 +118,42 @@ The arrows' task runs `avenger` from `PATH`. A project replaces it in its `.zed/
     "save": "all"
   }
 ]
+```
+
+## Debugging
+
+The extension's debug adapter, `avenger`, is `avenger dap`, which debugs a query's stages: in pipe syntax every prefix of a query is a query, so a stop at a `|>` line shows the rows that enter its operator. The extension finds the binary as it finds the language server's, with the setting `dap.avenger.binary` in place of `lsp.avenger-lsp.binary.path`, and starts it with the argument `dap` in the worktree's root, so a target's path is relative to the project:
+
+```json
+{ "dap": { "avenger": { "binary": "/absolute/path/to/avenger" } } }
+```
+
+**Breakpoints.** A click in the gutter sets a breakpoint. A run arrow takes the place of the breakpoint button on its row, so on an arrow's row a right-click in the gutter, or `editor: toggle breakpoint`, sets one. A breakpoint on a `|>` line stops at the rows that enter its operator, on a statement's first line at the statement's result, and on another line of a statement at the statement's next `|>` line. Zed draws a breakpoint on its own line even when it stops elsewhere, and shows no message, so the debug console says where a moved breakpoint stops, and why a breakpoint takes no stop, as on a blank line, a `DECLARE`, or a line of another file.
+
+**Debug from an arrow.** **Debug** in a run arrow's menu starts a session on the arrow's statement, `$ZED_FILE:$ZED_ROW`, as **Run** opens the viewer on it, with the debugger's binary, also when a project's `.zed/tasks.json` replaces the arrows' task. The viewer's window opens and shows each stop. A data script's statements take no session yet.
+
+**A session.** Zed marks the stop's line, and its Debug panel lists the stop's scopes under **Variables**: `Stage` at a `|>`, or `Result` at a statement's result, with the columns and their types, the row count, and the rows in chunks of 100, and `Script`, with the variables that the script declares and their values at the stop. Step Over and Step Into move to the next stop, Step Out to the statement's result, and Continue to the next breakpoint or the target's result. Step back has no button: `debugger: step back` in the command palette returns to the stop before. A stage that fails shows its errors in the window and in the debug console.
+
+**A scenario by hand.** A project's `.zed/debug.json` takes scenarios of the adapter `avenger`, whose `target` is a chart script, a Quarto cell as `report.qmd#2` or `report.qmd#LABEL`, or the statement at a line of either as `charts/revenue.av.sql:12`, and whose `stopOnEntry` stops at the first stop:
+
+```json
+[
+  {
+    "label": "Debug revenue",
+    "adapter": "avenger",
+    "request": "launch",
+    "target": "charts/revenue.av.sql",
+    "stopOnEntry": true
+  }
+]
+```
+
+Zed's new session dialog, `debugger: start`, also takes the adapter `avenger`: its program is the target, and a number as its first argument is the line of the target's statement.
+
+**Quarto.** A cell's breakpoints are rows of its `.qmd` document. A Quarto document's language is Quarto's, so its cells' arrows offer **Debug** only when the Quarto language names the debugger, in Zed's settings:
+
+```json
+{ "languages": { "Quarto": { "debuggers": ["avenger"] } } }
 ```
 
 ## Grammars and queries
@@ -148,7 +187,7 @@ pinned grammars into a `grammars/` directory here, which is ignored. After a cha
 
 ## Development and checks
 
-The extension's Rust runtime only chooses and configures the language server's process. Node and
+The extension's Rust runtime only chooses and configures the processes of the language server and the debugger, and turns the run arrows' task into a debug scenario. Node and
 pnpm run the package's checks, with Node 24, pnpm 11.9.0, Tree-sitter CLI 0.26.3, and the
 current stable Rust `wasm32-wasip2` target.
 
@@ -160,7 +199,7 @@ cargo check --locked --target wasm32-wasip2
 ```
 
 `pnpm test`, with the grammars' checkouts beside this repository, checks the package: the manifest and its pins, which CI's checkouts match, that every
-language that an injection names resolves to a language of the extension or of Zed, and the
-adapter. It then checks that the query copies match their grammars, and parses the scripts of
+language that an injection names resolves to a language of the extension or of Zed, the
+language server's adapter, and the debugger: its manifest entries, its schema, and its hooks. It then checks that the query copies match their grammars, and parses the scripts of
 `test/smoke/` with the pinned grammar while running the language's queries over them, and compares their run arrows and the ranges of `indents.scm` with `test/expected/runnables.txt` and `test/expected/indents.txt`, which a change accepts by copying its file of `test/output/` over it. It also tests `config.toml`'s indentation patterns against lines that they should and shouldn't match. The
 grammars' own repositories test the queries' captures.

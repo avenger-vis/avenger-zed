@@ -3,7 +3,7 @@ name = "Avenger"
 version = "0.1.0"
 schema_version = 1
 authors = ["Jon Mease and Avenger contributors"]
-description = "avenger-sql support: scripts (.av.sql), modules (.av.sqlm), and the language server"
+description = "avenger-sql support: scripts (.av.sql), modules (.av.sqlm), the language server, and the debugger"
 repository = "https://github.com/avenger-vis/avenger-zed"
 
 [grammars.avenger_sql]
@@ -31,3 +31,10 @@ rev = "5c830ae2686f46d195456dec3f475024cfc52e7d"
 name = "Avenger Language Server"
 languages = ["Avenger SQL", "Quarto"]
 language_ids = { "Avenger SQL" = "avenger-sql", Quarto = "quarto" }
+
+# `avenger dap`, which debugs a query's stages, and the locator that turns the run arrows' task,
+# `avenger view`, into a session of it on the arrow's statement.
+[debug_adapters.avenger]
+schema_path = "debug_adapter_schemas/avenger.json"
+
+[debug_locators.avenger]

@@ -88,4 +88,24 @@ release, with the Zed version and the platform in the release's notes.
      shows the error of a data script's temporary table.
    - In `report.qmd`, each cell's statements take arrows, and a click opens the cell's statement.
    - An edit of the chart's query, saved, reloads the window, which keeps its statement.
+10. **Indentation.** In a new `.av.sql` file of `test/smoke/`, with `avenger lsp` of avenger's
+    `main` once its formatter writes the style of `indent.av.sql`:
+    - Return after `FROM t`: column 0. After `|> AGGREGATE`: column 4. After `|> AGGREGATE a,`:
+      4, and after `    b,`, 4 again.
+    - After the last item, Return keeps 4, and `|>` typed there goes back to 0, the column of
+      `FROM`. Inside `CREATE VIEW v AS (`, a `|>` goes back to 4, the column of the inner `FROM`.
+    - Return after `|> WHERE x AND`: 4.
+    - Return after `|> AGGREGATE mark_bar(`: 4. A `)` typed alone on the next line stays at 4,
+      then the server moves it to 3, with the cursor after the `)`.
+    - `|> WHERE f(` autocloses to `()`. Return between them: the cursor's line at 4, and the `)`
+      below it at 4, then 3, from the newline's correction.
+    - Return just before `) AS chart`, after the last argument: the new line at 4 with the cursor
+      before the `)`, then the server moves it to 3 with the cursor still before the `)`.
+    - `GROUP BY` typed after the items: the server moves the line from 4 to 3 when the space
+      after `BY` is typed, with the cursor after it. Return after the `GROUP BY` line keeps 3, and
+      `|>` typed there goes back to 0.
+    - Return after `|> EXTEND CASE`: 4, `WHEN` lines stay there, and `END` goes back to 0.
+    - `CREATE VIEW v AS (` and Return: 4; `)` stays at 4, then the server moves it to 0.
+    - Each of these in a cell of `vega/report.qmd`.
+    - The cursor never stays behind the indentation.
 

@@ -5,7 +5,7 @@ title: Vega smoke report
 Two cells of the project. Each statement with rows takes a run arrow, as in a script.
 
 ```{avenger-sql}
---| label: origins
+#| label: origins
 FROM heavy_by_origin
 |> AGGREGATE mark_bar(x => Origin, y => cars) AS chart
 ```

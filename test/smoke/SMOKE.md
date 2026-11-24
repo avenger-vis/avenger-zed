@@ -2,8 +2,8 @@
 
 The checks of the extension in a running Zed, which the scripts can't make: that Zed builds and
 loads the grammars, which files open as Avenger SQL, the colors of the queries and the injections,
-the server's semantic tokens over them, the server in Quarto's cells, the run arrows, and the
-debugger. Run them before a
+the server's semantic tokens over them, the server in Quarto's cells, the run arrows, the
+debugger, and Quarto 2 documents. Run them before a
 release, with the Zed version and the platform in the release's notes.
 
 ## Setup
@@ -29,7 +29,7 @@ release, with the Zed version and the platform in the release's notes.
    ```json
    "dap": { "avenger": { "binary": "/path/to/avenger" } }
    ```
-4. For check 5, install the `Quarto` extension from Zed's registry.
+4. For checks 5 and 12, install the `Quarto` extension from Zed's registry.
 5. Open this directory, `test/smoke/`, as a project.
 
 ## Checks
@@ -157,3 +157,22 @@ release, with the Zed version and the platform in the release's notes.
       on line 9, the `SET`, which stays unverified: the statement has no rows. Debug stops at
       line 6 with `min_weight = 3000` in `Script`, Continue stops at line 12 with `4000`, and
       `debugger: step back` returns to `query 1` at line 5, with `3000` again.
+12. **Quarto 2.** Open `test/smoke/vega/` as a project:
+    - `report.av.qmd` opens as Avenger Quarto (the status bar), and `report.qmd` still as Quarto,
+      from the Quarto extension of check 5.
+    - The front matter is YAML. The `##` markers and the headings' text, the callout's `:::` and
+      `{.callout-note}`, the code span, `@fig-origins`, the `[span]{.smallcaps}`, and
+      `{{< pagebreak >}}` have their colors; with a LaTeX extension installed, `$p > 0$` and the
+      display math are LaTeX.
+    - Both `{avenger-sql}` cells have avenger's highlighting and their run arrows, which open
+      `avenger view` on the statement, as in check 9; the `{python}` cell is Python, and the
+      `{=html}` block HTML.
+    - The outline shows `Origins`, `Weather`, and `Elsewhere`, with the cells under them.
+    - In Vim mode, `vac` inside the callout selects the callout, and inside a cell selects the
+      cell.
+    - The indentation of a new line in a cell: note whether it is Avenger SQL's, 4, after
+      `|> AGGREGATE`, which is to say whether Zed takes an injected language's indentation in a
+      cell.
+    - The first cell's arrow offers Debug, from Avenger Quarto's `debuggers`, as Avenger SQL's
+      arrows do in check 11; note whether it does without that line, which is to say whether Zed
+      reads `debuggers` from the injected language.

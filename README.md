@@ -4,6 +4,8 @@ Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of 
 
 - scripts (`.av.sql`) and modules (`.av.sqlm`) open as **Avenger SQL**, and ```` ```avenger-sql ````
   fences in Markdown and `{avenger-sql}` cells of Quarto documents take its highlighting;
+- Quarto 2 documents with avenger cells (`.av.qmd`) open as **Avenger Quarto**, on Quarto 2's own
+  grammar of Quarto Markdown;
 - highlighting from the Tree-sitter grammar
   [tree-sitter-avenger-sql](https://github.com/avenger-vis/tree-sitter-avenger-sql), with
   injections into the strings that hold another language: the Typst markup of titles and labels,
@@ -162,17 +164,39 @@ Zed's new session dialog, `debugger: start`, also takes the adapter `avenger`: i
 { "languages": { "Quarto": { "debuggers": ["avenger"] } } }
 ```
 
+## Quarto 2 documents
+
+Name a Quarto document with avenger cells `*.av.qmd`, and it opens as **Avenger Quarto**. Zed picks a file's language by its longest matching suffix, so `av.qmd` wins over the `qmd` of another extension's Quarto language whichever loads last, and plain `.qmd` files stay with that extension, whose cells this extension's highlighting, arrows, and server reach already. To open a plain `.qmd` file here instead, map it in Zed's settings:
+
+```json
+{ "file_types": { "Avenger Quarto": ["qmd"] } }
+```
+
+Avenger Quarto parses with Quarto 2's own grammar of Quarto Markdown, the parser that q2 renders with, so the editor reads a document as q2 does:
+
+- divs, attributes, shortcodes, citations and cross-references, math, spans, notes, and editorial marks have their colors, where Markdown's grammars leave them as text;
+- a code cell takes the language that its braces name: `{avenger-sql}` is Avenger SQL, with its highlighting and run arrows, and `{python}` or `{r}` is the language of that name when Zed or one of its extensions installs it; `{ojs}` is JavaScript;
+- the front matter is YAML, raw `{=html}` and `{=latex}` blocks are HTML and LaTeX, and math is LaTeX when an extension installs it;
+- the outline shows each section by its heading and the cells in it;
+- in Vim mode, `ac` and `ic` select a section, a div such as a callout, or a cell.
+
 ## Grammars and queries
 
-The extension registers four grammars, each pinned to a full revision in `extension.toml`:
-`avenger_sql`, and from its repository's `format/` and `datetime/` directories `avenger_format`
-and `avenger_datetime`, and `avenger_typst` from
+The extension registers five grammars, each pinned to a full revision in `extension.toml`:
+`avenger_sql`, and from its repository's `format/`, `datetime/`, and `qmd/` directories
+`avenger_format`, `avenger_datetime`, and `avenger_qmd`, and `avenger_typst` from
 [tree-sitter-avenger-typst](https://github.com/avenger-vis/tree-sitter-avenger-typst). Each has a
-language: `Avenger SQL`, and the hidden `Avenger Format`, `Avenger Datetime`, and `Avenger Typst`,
-which only injections reach, by their file suffixes. Zed's bundled `JSON` and `Regex` languages
-take the other injections. The extension doesn't claim ordinary `.sql` files.
+language: `Avenger SQL` and `Avenger Quarto`, and the hidden `Avenger Format`, `Avenger Datetime`,
+and `Avenger Typst`, which only injections reach, by their file suffixes. Zed's bundled `JSON`,
+`Regex`, `YAML`, `HTML`, and `JavaScript` languages take the other injections. The extension
+doesn't claim ordinary `.sql` files.
 
-The grammars own their queries. `languages/*/` holds byte-identical copies of each grammar's
+`avenger_qmd` is Quarto 2's grammar, from quarto-dev/q2, which tree-sitter-avenger-sql copies
+under its own name: q2 names it `markdown`, and Zed refuses an extension's grammar named like a
+grammar that Zed builds in.
+
+The grammars own their queries, except Avenger Quarto's, which are the extension's own, since
+`avenger_qmd` carries none. `languages/*/` holds byte-identical copies of each grammar's
 `queries/*.scm` at its pinned revision, which `sync_queries.mjs` writes after a grammar's pin
 changes:
 
@@ -206,6 +230,6 @@ cargo check --locked --target wasm32-wasip2
 
 `pnpm test`, with the grammars' checkouts beside this repository, checks the package: the manifest and its pins, which CI's checkouts match, that every
 language that an injection names resolves to a language of the extension or of Zed, the
-language server's adapter, and the debugger: its manifest entries, its schema, and its hooks. It then checks that the query copies match their grammars, and parses the scripts of
-`test/smoke/` with the pinned grammar while running the language's queries over them, and compares their run arrows and the ranges of `indents.scm` with `test/expected/runnables.txt` and `test/expected/indents.txt`, which a change accepts by copying its file of `test/output/` over it. It also tests `config.toml`'s indentation patterns against lines that they should and shouldn't match. The
+language server's adapter, and the debugger: its manifest entries, its schema, and its hooks. It then checks that the query copies match their grammars, and parses the files of
+`test/smoke/`, scripts and Quarto 2 documents, each with its language's pinned grammar while running that language's queries over them, and compares their run arrows, the ranges of `indents.scm`, and the languages that Avenger Quarto injects into each document with `test/expected/runnables.txt`, `test/expected/indents.txt`, and `test/expected/injections.txt`, which a change accepts by copying its file of `test/output/` over it. It also tests `config.toml`'s indentation patterns against lines that they should and shouldn't match. The
 grammars' own repositories test the queries' captures.

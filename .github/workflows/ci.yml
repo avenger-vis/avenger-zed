@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: avenger-vis/tree-sitter-avenger-sql
-          ref: 44d1639307431923a0a73186e269bf65bbf22b4a
+          ref: 9fe1edcb35c80e1a1f564970bafed76d4f8487ac
           path: tree-sitter-avenger-sql
 
       - name: Check out the pinned Typst grammar

@@ -36,8 +36,16 @@ rev = "5c830ae2686f46d195456dec3f475024cfc52e7d"
 
 [language_servers.avenger-lsp]
 name = "Avenger Language Server"
-languages = ["Avenger SQL", "Quarto"]
-language_ids = { "Avenger SQL" = "avenger-sql", Quarto = "quarto" }
+languages = ["Avenger SQL", "Avenger Quarto", "Quarto"]
+language_ids = { "Avenger SQL" = "avenger-sql", "Avenger Quarto" = "quarto", Quarto = "quarto" }
+
+# Quarto 2's language server, `q2 lsp`, for Avenger Quarto alone: an `.av.qmd` name is the opt-in to
+# Quarto 2, whose syntax is stricter than Quarto 1's, so Quarto 1 documents of the Quarto language
+# take none of its errors.
+[language_servers.quarto2-lsp]
+name = "Quarto 2 Language Server"
+languages = ["Avenger Quarto"]
+language_ids = { "Avenger Quarto" = "quarto" }
 
 # `avenger dap`, which debugs a query's stages, and the locator that turns the run arrows' task,
 # `avenger view`, into a session of it on the arrow's statement.

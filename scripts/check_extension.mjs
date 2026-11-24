@@ -23,8 +23,12 @@ for (const expected of [
   'version = "0.1.0"',
   'repository = "https://github.com/avenger-vis/avenger-zed"',
   "[language_servers.avenger-lsp]",
-  'languages = ["Avenger SQL", "Quarto"]',
-  'language_ids = { "Avenger SQL" = "avenger-sql", Quarto = "quarto" }',
+  'languages = ["Avenger SQL", "Avenger Quarto", "Quarto"]',
+  'language_ids = { "Avenger SQL" = "avenger-sql", "Avenger Quarto" = "quarto", Quarto = "quarto" }',
+  // Quarto 2's server serves Avenger Quarto alone, so Quarto 1 documents take none of its errors.
+  "[language_servers.quarto2-lsp]",
+  'languages = ["Avenger Quarto"]',
+  'language_ids = { "Avenger Quarto" = "quarto" }',
 ]) assert(manifest.includes(expected), `extension.toml is missing ${expected}`);
 assert(!manifest.includes("file://"), "extension.toml must not name a file:// repository");
 
@@ -175,9 +179,32 @@ for (const [name, [source, should, shouldNot]] of Object.entries(patterns)) {
 }
 assert(/^tab_size = 4$/m.test(toml), "config.toml's tab_size must be 4, the style's unit");
 
-// Semantic token rules.
-const rules = JSON.parse(read("languages/avenger-sql/semantic_token_rules.json"));
-assert(Array.isArray(rules) && rules.every(rule => typeof rule.token_type === "string"), "semantic_token_rules.json must be a list of rules with token types");
+// Semantic token rules: lists of rules with token types. Avenger Quarto's style q2's own types, of
+// the legend that the nightly's `q2 lsp` advertises (0.48.0-nightly.20261121), and Avenger SQL's.
+const Q2_TOKEN_TYPES = new Set([
+  "qmdHeading", "qmdEmphasis", "qmdStrong", "qmdStrikethrough", "qmdLinkText", "qmdLinkUrl",
+  "qmdLinkTitle", "qmdImageText", "qmdImageUrl", "qmdInlineCode", "qmdCodeBlock", "qmdCodeInfo",
+  "qmdMath", "qmdShortcode", "qmdListMarker", "qmdQuote", "qmdPunctuation", "qmdFence",
+  "qmdFrontMatterFence", "qmdAttribute", "qmdBoolean", "qmdConstant", "qmdEmbedded", "qmdError",
+  "qmdEscape", "qmdCodeMarkup", "qmdCodePunctuation", "qmdTag",
+]);
+const tokenRules = language => {
+  const path = `languages/${language}/semantic_token_rules.json`;
+  const rules = JSON.parse(read(path));
+  assert(Array.isArray(rules) && rules.every(rule => typeof rule.token_type === "string"), `${path} must be a list of rules with token types`);
+  return Array.isArray(rules) ? rules : [];
+};
+const sqlRules = tokenRules("avenger-sql");
+const quartoRules = tokenRules("avenger-quarto");
+for (const rule of quartoRules) {
+  const own = rule.token_type.startsWith("qmd");
+  assert(!own || Q2_TOKEN_TYPES.has(rule.token_type), `Avenger Quarto styles ${rule.token_type}, which q2's legend lacks`);
+}
+// A cell's code is colored by avenger's grammar and tokens, not by q2's whole code block.
+assert(!quartoRules.some(rule => rule.token_type === "qmdCodeBlock"), "Avenger Quarto must not style qmdCodeBlock");
+for (const rule of sqlRules) {
+  assert(quartoRules.some(other => JSON.stringify(other) === JSON.stringify(rule)), `Avenger Quarto must carry Avenger SQL's rule of ${rule.token_type}, for the tokens of its cells`);
+}
 
 // The language server adapter.
 for (const path of ["LICENSE", "PUBLISHING.md", "README.md", "Cargo.toml", "Cargo.lock", "src/lib.rs"]) {
@@ -192,6 +219,8 @@ for (const expected of [
   "LspSettings::for_worktree",
   'worktree.which("target/release/avenger")',
   'worktree.which("avenger")',
+  'worktree.which("quarto2")',
+  'worktree.which("q2")',
   "worktree.shell_env()",
 ]) assert(adapter.includes(expected), `the adapter is missing ${expected}`);
 assert(!adapter.includes('worktree.which("cargo")'), "the adapter must not start the server through Cargo");

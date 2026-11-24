@@ -29,7 +29,8 @@ release, with the Zed version and the platform in the release's notes.
    ```json
    "dap": { "avenger": { "binary": "/path/to/avenger" } }
    ```
-4. For checks 5 and 12, install the `Quarto` extension from Zed's registry.
+4. For checks 5 and 12, install the `Quarto` extension from Zed's registry, and for check 12, q2
+   (`brew install quarto-dev/tap/q2`, or its nightly).
 5. Open this directory, `test/smoke/`, as a project.
 
 ## Checks
@@ -176,3 +177,13 @@ release, with the Zed version and the platform in the release's notes.
     - The first cell's arrow offers Debug, from Avenger Quarto's `debuggers`, as Avenger SQL's
       arrows do in check 11; note whether it does without that line, which is to say whether Zed
       reads `debuggers` from the injected language.
+    - Hover inside a cell answers from avenger's server, and a misspelled column shows its
+      diagnostic in the cell.
+    - An unclosed `:::` div, from deleting the callout's closing `:::`, shows q2's parse error, and
+      restoring it clears the error.
+    - With `"semantic_tokens": "combined"` for Avenger Quarto, the headings and fences take q2's
+      styles while the cells keep avenger's tokens: both servers' tokens in one buffer. Note
+      whether the second cell's `'plain_lines'` is italic, which is to say whether Zed takes the rules of
+      the buffer's language, Avenger Quarto's, which carries Avenger SQL's rule for it.
+    - With `q2` off `PATH`, Zed's log shows the error that names how to install, configure, or
+      turn off Quarto 2's server, and avenger's server still serves the cells.

@@ -1,0 +1,26 @@
+[
+  { "token_type": "qmdHeading", "style": ["title"] },
+  { "token_type": "qmdEmphasis", "style": ["emphasis"] },
+  { "token_type": "qmdStrong", "style": ["emphasis.strong"] },
+  { "token_type": "qmdStrikethrough", "style": ["strikethrough"] },
+  { "token_type": "qmdLinkText", "style": ["link_text"] },
+  { "token_type": "qmdImageText", "style": ["link_text"] },
+  { "token_type": "qmdLinkUrl", "style": ["link_uri"] },
+  { "token_type": "qmdImageUrl", "style": ["link_uri"] },
+  { "token_type": "qmdLinkTitle", "style": ["string"] },
+  { "token_type": "qmdInlineCode", "style": ["text.literal"] },
+  { "token_type": "qmdMath", "style": ["string.special"] },
+  { "token_type": "qmdShortcode", "style": ["preproc"] },
+  { "token_type": "qmdAttribute", "style": ["attribute"] },
+  { "token_type": "qmdCodeInfo", "style": ["label"] },
+  { "token_type": "qmdFence", "style": ["punctuation.embedded"] },
+  { "token_type": "qmdFrontMatterFence", "style": ["punctuation.special"] },
+  { "token_type": "qmdPunctuation", "style": ["punctuation.special"] },
+  { "token_type": "qmdListMarker", "style": ["punctuation.list_marker"] },
+  { "token_type": "qmdQuote", "style": ["comment"] },
+  {
+    "token_type": "enumMember",
+    "style": ["constant"],
+    "font_style": "italic"
+  }
+]

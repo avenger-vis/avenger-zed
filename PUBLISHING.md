@@ -33,8 +33,8 @@ When authorization is given, use this reviewed 0.1 handoff:
    `.gitmodules` and `extensions.toml`.
 8. Open a pull request to `zed-industries/extensions` that names the tested Zed
    version and platforms and explains that Avenger 0.1 is a language extension
-   for avenger-sql whose language server is the `avenger` binary, which the
-   extension finds rather than downloads.
+   for avenger-sql whose language server and debug adapter are the `avenger`
+   binary, which the extension finds rather than downloads.
 
 For an update, push the new extension commit first, update the registry
 submodule, and change the registry version to exactly match `extension.toml`.

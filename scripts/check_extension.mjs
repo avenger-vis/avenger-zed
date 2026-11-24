@@ -1,6 +1,7 @@
 // Checks the extension's package: the manifest and its grammars, the languages and the grammars
 // they name, that every language that an injection names resolves in Zed, the language server
-// adapter, and the files that Zed builds and must not be committed.
+// adapter, the debug adapter and its locator, and the files that Zed builds and must not be
+// committed.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -182,6 +183,40 @@ assert(!adapter.includes('worktree.which("cargo")'), "the adapter must not start
 for (const forbidden of ["download_file(", "latest_github_release("]) {
   assert(!adapter.includes(forbidden), `the adapter must not download the server (${forbidden})`);
 }
+
+// The debug adapter: the manifest declares it, with its schema, and its locator; the schema is a
+// JSON schema that requires the target; Avenger SQL names the adapter, so its run arrows offer
+// Debug; and the extension implements the hooks of the adapter and the locator.
+for (const expected of [
+  "[debug_adapters.avenger]",
+  'schema_path = "debug_adapter_schemas/avenger.json"',
+  "[debug_locators.avenger]",
+]) assert(manifest.includes(expected), `extension.toml is missing ${expected}`);
+const schemaPath = "debug_adapter_schemas/avenger.json";
+if (existsSync(resolve(root, schemaPath))) {
+  let schema;
+  try {
+    schema = JSON.parse(read(schemaPath));
+  } catch (error) {
+    assert(false, `${schemaPath} is not valid JSON: ${error.message}`);
+  }
+  if (schema) {
+    assert(schema.type === "object", `${schemaPath} must describe an object`);
+    assert(schema.required?.includes("target"), `${schemaPath} must require target`);
+    assert(schema.properties?.target?.type === "string", `${schemaPath}'s target must be a string`);
+    assert(schema.properties?.stopOnEntry?.type === "boolean", `${schemaPath}'s stopOnEntry must be a boolean`);
+  }
+} else {
+  assert(false, `missing ${schemaPath}`);
+}
+assert(/^debuggers = \["avenger"\]$/m.test(sql), 'languages/avenger-sql/config.toml must name the debugger, debuggers = ["avenger"]');
+for (const hook of [
+  "fn get_dap_binary(",
+  "fn dap_request_kind(",
+  "fn dap_config_to_scenario(",
+  "fn dap_locator_create_scenario(",
+  "fn run_dap_locator(",
+]) assert(adapter.includes(hook), `the extension must implement ${hook.slice(3, -1)}`);
 
 // Line endings: the grammars' repositories check out with LF, so the copies of their queries,
 // and the files that the scripts read, must too, also on Windows.

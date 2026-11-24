@@ -1,0 +1,9 @@
+[
+  {
+    "label": "Debug origins",
+    "adapter": "avenger",
+    "request": "launch",
+    "target": "charts/origins.av.sql",
+    "stopOnEntry": true
+  }
+]

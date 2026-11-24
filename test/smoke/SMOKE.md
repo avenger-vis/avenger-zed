@@ -124,10 +124,16 @@ release, with the Zed version and the platform in the release's notes.
     - Debug from the arrow's menu: the window opens and shows the rows that enter `JOIN`, Zed
       marks line 3, and **Variables** shows `Stage`, with the columns of `heavy_by_origin`, and
       `Script`.
-    - Step Over moves to the rows that enter `AGGREGATE` and marks line 4. `debugger: step back`
-      from the command palette returns to line 3.
+    - Step Over moves to the rows that enter `AGGREGATE` and marks line 4. There, `|> LIMIT 1` in
+      the debug console answers `1 rows, 3 columns`, lists the row, which the window shows, and
+      prints it in a grid under the answer.
+      `debugger: step back` from the command palette returns to line 3.
     - Continue stops at line 4 again, and Continue once more reaches the breakpoint of line 2, the
-      `result` frame, with the chart in the window and `Result` in **Variables**. Stop closes the
+      `result` frame, with the chart in the window and `Result`, `Selections`, `Widgets`,
+      `Scale Domains`, and `Modes` in **Variables**. A zoom in the window changes the domains of
+      `Scale Domains` without a step, and the debug console names the change.
+    - An edit of line 4 that is saved, as `y => cars * 2`, runs the stop again: the chart changes,
+      and the console names `origins.av.sql`. Restart returns to the same stop. Stop closes the
       window.
     - A breakpoint on line 1, the comment, stays where it is drawn, and the debug console says
       that it takes no stop: no statement holds the line.
@@ -135,3 +141,19 @@ release, with the Zed version and the platform in the release's notes.
       entry at line 3.
     - In `report.qmd`, with `"languages": { "Quarto": { "debuggers": ["avenger"] } }` in Zed's
       settings, the first cell's arrow offers Debug, and a breakpoint on line 10 stops there.
+    - In `data/summaries.av.sql`, Debug from the arrow of `heavy_by_origin`, with a breakpoint on
+      the `|> WHERE` of `heavy`, stops at the 406 cars, then Step Over reaches `table heavy`, of 174
+      rows.
+    - In `charts/layers.av.sql`, Debug from the arrow and Continue to the `result` frame. In
+      **Variables**, `Result` > `rows` > `1` > `chart` opens into three layers that draw different
+      rows: `plot 1 › cars (symbol)`, 392 rows, `plot 1 › means (symbol)` and
+      `plot 2 › counts (bar)`, 3 rows each. Each layer's `columns` name their channels, as
+      `x: avg(Horsepower)` and `x, color: Origin`.
+    - In `charts/faceted.av.sql`, Debug from the arrow and Continue to the `result` frame. The
+      chart's layers name their facet cells, `plot 1 (Origin = Europe) › layer 1 (symbol)`, 68
+      rows, then Japan, 79, and USA, 245, and `Scale Domains` reads `x of plots 1–3`,
+      `y of plots 1–3`, and `color of plots 1–3`, which the three cells share.
+    - In `charts/thresholds.av.sql`, breakpoints on lines 6 and 12, the `|> WHERE` lines, and
+      on line 9, the `SET`, which stays unverified: the statement has no rows. Debug stops at
+      line 6 with `min_weight = 3000` in `Script`, Continue stops at line 12 with `4000`, and
+      `debugger: step back` returns to `query 1` at line 5, with `3000` again.

@@ -23,9 +23,10 @@ for (const expected of [
   'version = "0.1.0"',
   'repository = "https://github.com/avenger-vis/avenger-zed"',
   "[language_servers.avenger-lsp]",
-  'languages = ["Avenger SQL", "Avenger Quarto", "Quarto"]',
-  'language_ids = { "Avenger SQL" = "avenger-sql", "Avenger Quarto" = "quarto", Quarto = "quarto" }',
-  // Quarto 2's server serves Avenger Quarto alone, so Quarto 1 documents take none of its errors.
+  // Both servers serve Avenger Quarto, the only language of Quarto documents here: plain `.qmd`
+  // files stay with other extensions.
+  'languages = ["Avenger SQL", "Avenger Quarto"]',
+  'language_ids = { "Avenger SQL" = "avenger-sql", "Avenger Quarto" = "quarto" }',
   "[language_servers.quarto2-lsp]",
   'languages = ["Avenger Quarto"]',
   'language_ids = { "Avenger Quarto" = "quarto" }',
@@ -276,12 +277,16 @@ for (const hook of [
 // Line endings: the grammars' repositories check out with LF, so the copies of their queries,
 // and the files that the scripts read, must too, also on Windows.
 assert(read(".gitattributes").split(/\r?\n/).includes("* text eol=lf"), ".gitattributes must check out text with LF");
+// A wasm, such as the grammar of the smoke project's `_quarto/grammars/`, is binary.
+assert(read(".gitattributes").split(/\r?\n/).includes("*.wasm binary"), ".gitattributes must keep wasm files binary");
 
 // Files that Zed builds.
 const ignored = read(".gitignore").split(/\r?\n/);
 const tracked = path => execFileSync("git", ["ls-files", path], { cwd: root, encoding: "utf8" }).trim() !== "";
-for (const path of ["extension.wasm", "grammars/"]) {
-  assert(ignored.includes(path), `.gitignore must ignore ${path}`);
+// `grammars/` is anchored at the root, since a Quarto project's grammars, `_quarto/grammars/`, are
+// committed.
+for (const [pattern, path] of [["extension.wasm", "extension.wasm"], ["/grammars/", "grammars/"]]) {
+  assert(ignored.includes(pattern), `.gitignore must ignore ${pattern}`);
   assert(!tracked(path), `${path} must not be committed`);
 }
 

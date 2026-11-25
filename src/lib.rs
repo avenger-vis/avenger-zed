@@ -670,16 +670,16 @@ mod tests {
     #[test]
     fn dialog_line_argument_targets_its_statement() {
         let scenario = AvengerExtension
-            .dap_config_to_scenario(dialog("report.qmd", &["16"], None))
+            .dap_config_to_scenario(dialog("report.av.qmd", &["16"], None))
             .unwrap();
         assert_eq!(
             config_of(&scenario),
-            json!({ "request": "launch", "target": "report.qmd:16" })
+            json!({ "request": "launch", "target": "report.av.qmd:16" })
         );
         let scenario = AvengerExtension
-            .dap_config_to_scenario(dialog("report.qmd#2", &["--json"], None))
+            .dap_config_to_scenario(dialog("report.av.qmd#2", &["--json"], None))
             .unwrap();
-        assert_eq!(config_of(&scenario)["target"], "report.qmd#2");
+        assert_eq!(config_of(&scenario)["target"], "report.av.qmd#2");
     }
 
     #[test]

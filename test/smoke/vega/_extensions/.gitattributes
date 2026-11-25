@@ -1,0 +1,7 @@
+# Created by `q2 add`. Tells git to keep installed extension files
+# byte-for-byte as installed, without converting line endings. Each
+# extension's .quarto-source.yml records a hash of every file, and a
+# converted file would look like a local edit.
+#
+# You can edit this file. `q2 add` only creates it when it is missing.
+* -text

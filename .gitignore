@@ -1,6 +1,6 @@
 node_modules/
 .tmp/
-grammars/
+/grammars/
 target/
 extension.wasm
 .DS_Store

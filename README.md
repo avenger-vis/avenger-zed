@@ -3,7 +3,7 @@
 Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of Avenger's charts:
 
 - scripts (`.av.sql`) and modules (`.av.sqlm`) open as **Avenger SQL**, and ```` ```avenger-sql ````
-  fences in Markdown and `{avenger-sql}` cells of Quarto documents take its highlighting;
+  fences in Markdown take its highlighting;
 - Quarto 2 documents with avenger cells (`.av.qmd`) open as **Avenger Quarto**, on Quarto 2's own
   grammar of Quarto Markdown, with Quarto 2's language server beside avenger's;
 - highlighting from the Tree-sitter grammar
@@ -16,7 +16,7 @@ Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of 
   or debug it, and on a Quarto 2 document's first line, which previews it with q2;
 - the debugger, `avenger dap`, which stops at a query's stages, with breakpoints on its `|>` lines
   and the rows of each stop in Zed's debugger and in the viewer's window;
-- the language server, `avenger lsp`, for Avenger SQL and for Quarto documents: diagnostics,
+- the language server, `avenger lsp`, for Avenger SQL and the cells of Avenger Quarto: diagnostics,
   completion, hover, navigation, and the rest of
   [avenger-cli](https://github.com/jonmmease/avenger/tree/main/avenger-cli)'s editor features,
   and, optionally, semantic tokens over the grammar's colors.
@@ -66,8 +66,7 @@ them:
 {
   "languages": {
     "Avenger SQL": { "semantic_tokens": "combined" },
-    "Avenger Quarto": { "semantic_tokens": "combined" },
-    "Quarto": { "semantic_tokens": "combined" }
+    "Avenger Quarto": { "semantic_tokens": "combined" }
   }
 }
 ```
@@ -93,7 +92,7 @@ Return indents the new line as the formatter's style lays out pipe syntax, Googl
 
 ## Run arrows
 
-Each statement of a script that has rows takes a run arrow in the gutter: each query, and each statement that makes a table, also in the `{avenger-sql}` cells of a Quarto document. A click on an arrow of a script opens a menu of **Run** and **Debug**, since the arrows' task has a debug scenario (see [Debugging](#debugging)); a cell's arrow runs at once, unless the Quarto language names the debugger. **Run** opens `avenger view` on the statement at the arrow's line, a window that reloads as the project's files change:
+Each statement of a script that has rows takes a run arrow in the gutter: each query, and each statement that makes a table, also in the `{avenger-sql}` cells of an Avenger Quarto document. A click on an arrow opens a menu of **Run** and **Debug**, since the arrows' task has a debug scenario (see [Debugging](#debugging)). **Run** opens `avenger view` on the statement at the arrow's line, a window that reloads as the project's files change:
 
 - the last query of a chart script, or of a cell, shows the chart, live, or the table of its result;
 - another query shows its rows;
@@ -143,7 +142,7 @@ The extension's debug adapter, `avenger`, is `avenger dap`, which debugs a query
 
 **Values and edits.** A variable of `Script` takes a new value of its type in **Variables**, as `min_weight` to `3500`, and the stop runs again with it. A change of the script, or of a data script, a module, or a data file that it reads, runs the stop again as the viewer runs its chart again: Zed marks the stop's line, the breakpoints bind again, and the debug console names the change. Restart opens the project again at the same stop.
 
-**A scenario by hand.** A project's `.zed/debug.json` takes scenarios of the adapter `avenger`, whose `target` is a chart script, a Quarto cell as `report.qmd#2` or `report.qmd#LABEL`, or the statement at a line of either as `charts/revenue.av.sql:12`, and whose `stopOnEntry` stops at the first stop:
+**A scenario by hand.** A project's `.zed/debug.json` takes scenarios of the adapter `avenger`, whose `target` is a chart script, a Quarto cell as `report.av.qmd#2` or `report.av.qmd#LABEL`, or the statement at a line of either as `charts/revenue.av.sql:12`, and whose `stopOnEntry` stops at the first stop:
 
 ```json
 [
@@ -159,15 +158,11 @@ The extension's debug adapter, `avenger`, is `avenger dap`, which debugs a query
 
 Zed's new session dialog, `debugger: start`, also takes the adapter `avenger`: its program is the target, and a number as its first argument is the line of the target's statement.
 
-**Quarto.** A cell's breakpoints are rows of its `.qmd` document. A Quarto document's language is Quarto's, so its cells' arrows offer **Debug** only when the Quarto language names the debugger, in Zed's settings:
-
-```json
-{ "languages": { "Quarto": { "debuggers": ["avenger"] } } }
-```
+**Quarto.** A cell's breakpoints are rows of its `.av.qmd` document, and its arrows offer **Debug** as a script's do, since Avenger Quarto names the debugger.
 
 ## Quarto 2 documents
 
-Name a Quarto document with avenger cells `*.av.qmd`, and it opens as **Avenger Quarto**. Zed picks a file's language by its longest matching suffix, so `av.qmd` wins over the `qmd` of another extension's Quarto language whichever loads last, and plain `.qmd` files stay with that extension, whose cells this extension's highlighting, arrows, and server reach already. To open a plain `.qmd` file here instead, map it in Zed's settings:
+Name a Quarto document with avenger cells `*.av.qmd`, and it opens as **Avenger Quarto**. Zed picks a file's language by its longest matching suffix, so `av.qmd` wins over the `qmd` of another extension's Quarto language whichever loads last, and plain `.qmd` files stay with that extension, which this one doesn't serve. To open a plain `.qmd` file as Avenger Quarto instead, map it in Zed's settings:
 
 ```json
 { "file_types": { "Avenger Quarto": ["qmd"] } }
@@ -193,8 +188,6 @@ Install q2 with `brew install quarto-dev/tap/q2`, or as [q2's README](https://gi
 ```json
 { "languages": { "Avenger Quarto": { "language_servers": ["!quarto2-lsp", "..."] } } }
 ```
-
-Only Avenger Quarto takes Quarto 2's server: its syntax is stricter than Quarto 1's, which a plain `.qmd` file of the Quarto language may be written in.
 
 The arrow on a document's first line previews it: `q2 preview` of the file, which renders it, opens it in the browser, and renders again what changes as its files change, keeping the page's scroll. In a project, one with `_quarto.yml`, it opens the document's page of the project. A second click starts the preview again, in a new tab. The preview follows the files on disk, so the arrow saves first, and autosave makes the page follow typing:
 

@@ -2,3 +2,7 @@
 # What `q2 render` and `q2 preview --static` write beside the documents.
 /*.html
 /*_files/
+/_output/
+/_avenger/
+# The figures that q2 leaves beside each document
+*_files/

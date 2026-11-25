@@ -1,6 +1,10 @@
 ---
 title: Vega smoke report
-format: html
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
 ---
 
 A Quarto 2 document of the project, as `report.qmd` is a Quarto 1 one. Its cells take run arrows,
@@ -19,13 +23,21 @@ FROM heavy_by_origin
 |> AGGREGATE mark_bar(x => Origin, y => cars) AS chart
 ```
 
+## Cars
+
+The horsepower and the fuel economy of each car, by origin, in @fig-cars. Drag to pan, scroll to
+zoom, and hover a car for its values.
+
+```{avenger-sql}
+#| label: fig-cars
+#| fig-cap: Horsepower and fuel economy
+FROM vega_datasets.cars
+|> AGGREGATE mark_symbol(x => Horsepower, y => Miles_per_Gallon, color => Origin, tools => [navigate(), tooltip()]) AS chart
+```
+
 ## Weather
 
-The wet days of each weather, then their chart. A day is wet when $p > 0$:
-
-$$
-\text{wet} = \{\, d : p_d > 0 \,\}
-$$
+The wet days of each weather, then their chart. A day is wet when its precipitation is above zero.
 
 ```{avenger-sql}
 FROM wet_days
@@ -38,9 +50,11 @@ FROM wet_days
 ## Elsewhere
 
 A cell of another language, which avenger leaves to its own engine, and a [span]{.smallcaps} of
-text. {{< pagebreak >}}
+text.
 
-```{python}
+{{< pagebreak >}}
+
+```python
 print("not an avenger cell")
 ```
 

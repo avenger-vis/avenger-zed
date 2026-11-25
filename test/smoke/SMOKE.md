@@ -182,5 +182,7 @@ Run them before a release, with the Zed version and the platform in the release'
     - Line 1 has an arrow whose menu runs `Quarto 2: Preview report.av.qmd`: it opens the
       browser on the document, and a second click starts the preview again in a new tab. The
       project's engine draws both cells' charts, the first as Figure 1, `Heavy cars by origin`,
-      which `@fig-origins` links to, from the cell's `#|` options; an edit of a cell and a save
-      redraw its chart.
+      which `@fig-origins` links to, from the cell's `#|` options, and the cells' code has
+      avenger's highlighting. An edit of a cell and a save render the page again and reload it with
+      the new chart. With `theme: {light: cosmo, dark: darkly}` in the front matter, the page's
+      toggle switches the page and its charts between light and dark.

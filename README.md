@@ -13,7 +13,7 @@ Zed support for [avenger-sql](https://github.com/jonmmease/avenger), the SQL of 
   regex functions, the values of date, time, and range literals, and JSON;
 - indentation as you type, in the formatter's style;
 - run arrows in the gutter on each query and table, which open `avenger view` on the statement
-  or debug it, and on a Quarto 2 document's first line, which previews it with q2;
+  or debug it, and at the top of a Quarto 2 document, which previews it with q2;
 - the debugger, `avenger dap`, which stops at a query's stages, with breakpoints on its `|>` lines
   and the rows of each stop in Zed's debugger and in the viewer's window;
 - the language server, `avenger lsp`, for Avenger SQL and the cells of Avenger Quarto: diagnostics,
@@ -189,7 +189,7 @@ Install q2 with `brew install quarto-dev/tap/q2`, or as [q2's README](https://gi
 { "languages": { "Avenger Quarto": { "language_servers": ["!quarto2-lsp", "..."] } } }
 ```
 
-The arrow on a document's first line previews it: `q2 preview` of the file, which renders it, opens it in the browser, and renders again what changes as its files change, keeping the page's scroll. In a project, one with `_quarto.yml`, it opens the document's page of the project. A second click starts the preview again, in a new tab. The preview follows the files on disk, so the arrow saves first, and autosave makes the page follow typing:
+The arrow at the top of a document, on its front matter or else on its first block, previews it: `q2 preview --static` of the file, which renders it to disk as `q2 render` does, beside the document, serves it, opens it in the browser, and renders it again and reloads the page as its files change. A static preview is the rendered page itself, so the cells' code has its highlighting and the page its light and dark toggle, which q2's live preview leaves out. In a project, one with `_quarto.yml`, it opens the document's page of the project. A second click starts the preview again, in a new tab. The preview follows the files on disk, so the arrow saves first, and autosave makes the page follow typing:
 
 ```json
 { "languages": { "Avenger Quarto": { "autosave": { "after_delay": { "milliseconds": 500 } } } } }

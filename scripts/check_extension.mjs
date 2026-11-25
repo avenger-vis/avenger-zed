@@ -110,11 +110,11 @@ for (const language of found) {
 // run concurrently would wait for it, so a second click replaces the running one.
 const TASKS = {
   "avenger-view": { command: "avenger", args: ["view", "$ZED_FILE:$ZED_ROW"] },
-  "quarto2-preview": { command: "q2", args: ["preview", "$ZED_FILE"] },
+  "quarto2-preview": { command: "q2", args: ["preview", "--static", "$ZED_FILE"] },
 };
 const runnables = { "avenger-sql": ["avenger-view"], "avenger-quarto": ["quarto2-preview"] };
 for (const [language, expected] of Object.entries(runnables)) {
-  const tags = [...read(`languages/${language}/runnables.scm`).matchAll(/#set! tag ([A-Za-z0-9_-]+)/g)].map(m => m[1]);
+  const tags = [...new Set([...read(`languages/${language}/runnables.scm`).matchAll(/#set! tag ([A-Za-z0-9_-]+)/g)].map(m => m[1]))];
   const tasks = JSON.parse(read(`languages/${language}/tasks.json`));
   assert(JSON.stringify(tags) === JSON.stringify(expected), `languages/${language}/runnables.scm must set the tags ${expected.join(", ")}`);
   for (const tag of tags) {

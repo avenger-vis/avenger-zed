@@ -2,9 +2,8 @@
 
 The checks of the extension in a running Zed, which the scripts can't make: that Zed builds and
 loads the grammars, which files open as Avenger SQL, the colors of the queries and the injections,
-the server's semantic tokens over them, the server in Quarto's cells, the run arrows, the
-debugger, and Quarto 2 documents. Run them before a
-release, with the Zed version and the platform in the release's notes.
+the server's semantic tokens over them, the run arrows, the debugger, and Quarto 2 documents.
+Run them before a release, with the Zed version and the platform in the release's notes.
 
 ## Setup
 
@@ -24,13 +23,15 @@ release, with the Zed version and the platform in the release's notes.
    `binary.arguments`, or no arguments, so the setting needs `"arguments": ["lsp"]`. Without the
    setting, in an avenger checkout, the extension starts `target/release/avenger lsp`.
 
-   For check 11, the debugger's binary, which the extension starts with `dap`:
+   For check 10, the debugger's binary, which the extension starts with `dap`:
 
    ```json
    "dap": { "avenger": { "binary": "/path/to/avenger" } }
    ```
-4. For checks 5 and 12, install the `Quarto` extension from Zed's registry, and for check 12, q2
-   (`brew install quarto-dev/tap/q2`, or its nightly).
+4. For check 11, q2 (`brew install quarto-dev/tap/q2`, or its nightly) and Node 24 or newer, which
+   q2 runs the avenger engine with. `test/smoke/vega/` holds the engine extension, its grammar,
+   and `_quarto.yml`, from `avenger quarto2-init`; run it again there after avenger's engine
+   changes.
 5. Open this directory, `test/smoke/`, as a project.
 
 ## Checks
@@ -45,19 +46,13 @@ release, with the Zed version and the platform in the release's notes.
 4. **Semantic tokens.** With `"semantic_tokens": "combined"`, the server's tokens draw over the
    Tree-sitter colors, except in the strings that an injection colors:
    - In `typst.av.sql`, the title, the subtitle, and the first two credits keep the Typst colors
-     of check 7.
+     of check 6.
    - A column, such as `k`, takes the server's color.
    - In the second chart, `'plain_lines'` in `syntax => 'plain_lines'` is italic in the constant
      color, from `semantic_token_rules.json`, which shows that the extension's rules apply.
-5. **Quarto.** In `report.qmd`:
-   - Both `{avenger-sql}` cells have avenger highlighting: the Markdown grammar's `language`
-     node leaves out the braces and the attributes, and `avenger-sql` is a suffix of the
-     language.
-   - Hover inside a cell answers from the server, and diagnostics show in the cell, which shows
-     that the server attaches to the Quarto language beside Quarto's own server.
-6. **Markdown fences.** In `notes.md`, the ```` ```avenger-sql ```` block shows avenger
+5. **Markdown fences.** In `notes.md`, the ```` ```avenger-sql ```` block shows avenger
    highlighting.
-7. **Typst injection.** In `typst.av.sql`, with `"semantic_tokens": "off"`:
+6. **Typst injection.** In `typst.av.sql`, with `"semantic_tokens": "off"`:
    - In the title, `Penguins` is bold and `island` emphasized, with their delimiters in the
      special punctuation color, `$...$` shows its variables, operators, and numbers, `#emph` and
      `#numfmt` are functions, and `` `raw` `` is literal text.
@@ -76,7 +71,7 @@ release, with the Zed version and the platform in the release's notes.
        "One Dark": { "syntax": { "emphasis": { "font_style": "italic" } } }
      }
      ```
-8. **The other injections.** In `injections.av.sql`, with `"semantic_tokens": "off"`:
+7. **The other injections.** In `injections.av.sql`, with `"semantic_tokens": "off"`:
    - The patterns of `REGEXP_CONTAINS` and `REGEXP_REPLACE` show Zed's `Regex` colors, and the
      replacement `r'<\1>'` stays a string.
    - The formats of `FORMAT_DATE`, `PARSE_TIMESTAMP`, and `FORMAT` show their directives, such as
@@ -85,7 +80,7 @@ release, with the Zed version and the platform in the release's notes.
      numbers, their separators as punctuation, `America/Los_Angeles` as a constant, and
      `UNBOUNDED` as a built-in constant, over the special string color of the value.
    - `NUMERIC '1.25'` shows its value as a number, and `JSON '{"a": [1, 2]}'` Zed's JSON colors.
-9. **Run arrows.** With `avenger` on `PATH`, open `test/smoke/vega/` as a project:
+8. **Run arrows.** With `avenger` on `PATH`, open `test/smoke/vega/` as a project:
    - In `charts/heavy.av.sql`, the `CREATE TEMP TABLE`, the earlier query, and the chart's query
      take arrows, and the `DECLARE` doesn't. In `data/vega_datasets.av.sql`, the external table and
      the `LOAD DATA` take arrows, and `CREATE SCHEMA` doesn't. `modules/weather.av.sqlm` has none.
@@ -95,10 +90,8 @@ release, with the Zed version and the platform in the release's notes.
    - Run from the arrow of `CREATE VIEW wet_days` in `data/summaries.av.sql` shows the view's
      rows, with its columns' types and its row count. The arrow of `CREATE TEMP TABLE heavy` there
      shows the error of a data script's temporary table.
-   - In `report.qmd`, each cell's statements take arrows, and a click runs the cell's statement
-     at once, without a menu, unless the settings of check 11 name the debugger for Quarto.
    - An edit of the chart's query, saved, reloads the window, which keeps its statement.
-10. **Indentation.** In a new `.av.sql` file of `test/smoke/`, with `avenger lsp` of avenger's
+9. **Indentation.** In a new `.av.sql` file of `test/smoke/`, with `avenger lsp` of avenger's
     `main` once its formatter writes the style of `indent.av.sql`:
     - Return after `FROM t`: column 0. After `|> AGGREGATE`: column 4. After `|> AGGREGATE a,`:
       4, and after `    b,`, 4 again.
@@ -116,9 +109,9 @@ release, with the Zed version and the platform in the release's notes.
       `|>` typed there goes back to 0.
     - Return after `|> EXTEND CASE`: 4, `WHEN` lines stay there, and `END` goes back to 0.
     - `CREATE VIEW v AS (` and Return: 4; `)` stays at 4, then the server moves it to 0.
-    - Each of these in a cell of `vega/report.qmd`.
+    - Each of these in a cell of `vega/report.av.qmd`.
     - The cursor never stays behind the indentation.
-11. **Debugging.** With the debugger's binary of the setup, from avenger's `main` once it has
+10. **Debugging.** With the debugger's binary of the setup, from avenger's `main` once it has
     `avenger dap`, open `test/smoke/vega/` as a project:
     - In `charts/origins.av.sql`, a click in the gutter of each `|>` line, 3 and 4, sets a
       breakpoint. On line 2, the arrow's row, a right-click in the gutter sets one.
@@ -140,8 +133,8 @@ release, with the Zed version and the platform in the release's notes.
       that it takes no stop: no statement holds the line.
     - `debugger: start` lists the scenario `Debug origins` of `.zed/debug.json`, which stops on
       entry at line 3.
-    - In `report.qmd`, with `"languages": { "Quarto": { "debuggers": ["avenger"] } }` in Zed's
-      settings, the first cell's arrow offers Debug, and a breakpoint on line 10 stops there.
+    - In `report.av.qmd`, Debug from the first cell's arrow, with a breakpoint on the cell's
+      `|> AGGREGATE` line, stops there.
     - In `data/summaries.av.sql`, Debug from the arrow of `heavy_by_origin`, with a breakpoint on
       the `|> WHERE` of `heavy`, stops at the 406 cars, then Step Over reaches `table heavy`, of 174
       rows.
@@ -158,15 +151,14 @@ release, with the Zed version and the platform in the release's notes.
       on line 9, the `SET`, which stays unverified: the statement has no rows. Debug stops at
       line 6 with `min_weight = 3000` in `Script`, Continue stops at line 12 with `4000`, and
       `debugger: step back` returns to `query 1` at line 5, with `3000` again.
-12. **Quarto 2.** Open `test/smoke/vega/` as a project:
-    - `report.av.qmd` opens as Avenger Quarto (the status bar), and `report.qmd` still as Quarto,
-      from the Quarto extension of check 5.
+11. **Quarto 2.** Open `test/smoke/vega/` as a project:
+    - `report.av.qmd` opens as Avenger Quarto (the status bar).
     - The front matter is YAML. The `##` markers and the headings' text, the callout's `:::` and
       `{.callout-note}`, the code span, `@fig-origins`, the `[span]{.smallcaps}`, and
       `{{< pagebreak >}}` have their colors; with a LaTeX extension installed, `$p > 0$` and the
       display math are LaTeX.
     - Both `{avenger-sql}` cells have avenger's highlighting and their run arrows, which open
-      `avenger view` on the statement, as in check 9; the `{python}` cell is Python, and the
+      `avenger view` on the statement, as in check 8; the `{python}` cell is Python, and the
       `{=html}` block HTML.
     - The outline shows `Origins`, `Weather`, and `Elsewhere`, with the cells under them.
     - In Vim mode, `vac` inside the callout selects the callout, and inside a cell selects the
@@ -175,7 +167,7 @@ release, with the Zed version and the platform in the release's notes.
       `|> AGGREGATE`, which is to say whether Zed takes an injected language's indentation in a
       cell.
     - The first cell's arrow offers Debug, from Avenger Quarto's `debuggers`, as Avenger SQL's
-      arrows do in check 11; note whether it does without that line, which is to say whether Zed
+      arrows do in check 10; note whether it does without that line, which is to say whether Zed
       reads `debuggers` from the injected language.
     - Hover inside a cell answers from avenger's server, and a misspelled column shows its
       diagnostic in the cell.
@@ -188,7 +180,7 @@ release, with the Zed version and the platform in the release's notes.
     - With `q2` off `PATH`, Zed's log shows the error that names how to install, configure, or
       turn off Quarto 2's server, and avenger's server still serves the cells.
     - Line 1 has an arrow whose menu runs `Quarto 2: Preview report.av.qmd`: it opens the
-      browser on the document, and a second click starts the preview again in a new tab. With no
-      engine for avenger cells in the project, note what the page shows for them; with
-      `engine: markdown` in the front matter, they are code. With an engine, an edit of a cell and
-      a save redraw its chart.
+      browser on the document, and a second click starts the preview again in a new tab. The
+      project's engine draws both cells' charts, the first as Figure 1, `Heavy cars by origin`,
+      which `@fig-origins` links to, from the cell's `#|` options; an edit of a cell and a save
+      redraw its chart.

@@ -9,7 +9,7 @@
     },
     "target": {
       "type": "string",
-      "description": "What to debug, as `avenger view` takes it, relative to the worktree's root: a chart script, such as `charts/revenue.av.sql`; a cell of a Quarto document, as `report.qmd#2` or `report.qmd#LABEL`; or the statement at a line of either, as `charts/revenue.av.sql:12`."
+      "description": "What to debug, as `avenger view` takes it, relative to the worktree's root: a chart script, such as `charts/revenue.av.sql`; a cell of a Quarto document, as `report.av.qmd#2` or `report.av.qmd#LABEL`; or the statement at a line of either, as `charts/revenue.av.sql:12`."
     },
     "stopOnEntry": {
       "type": "boolean",

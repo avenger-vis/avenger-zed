@@ -1,0 +1,4 @@
+/.quarto/
+# What `q2 render` and `q2 preview --static` write beside the documents.
+/*.html
+/*_files/

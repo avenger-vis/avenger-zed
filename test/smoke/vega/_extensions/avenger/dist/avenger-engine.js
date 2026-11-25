@@ -1,4 +1,6 @@
 import { spawn } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 /**
  * The avenger engine of Quarto 2: the `{avenger-sql}` cells of a document run through
@@ -59,6 +61,14 @@ const PROTOCOL = 1;
                                                   
                               
                  
+                       
+                      
+ 
+
+/** avenger's answer: each cell's outputs, and the header of a page with interactive charts. */
+                         
+                        
+                  
  
 
 /** The output formats whose images are SVG. Others, such as docx and pptx, take PNG. */
@@ -81,26 +91,30 @@ function imageFor(to        )                   {
   return SVG_FORMATS.has(base) ? { format: "svg", scale: 1 } : { format: "png", scale: 2 };
 }
 
+/**
+ * The output formats whose pages run scripts, where a chart that declares tools draws in a canvas
+ * with them. q2 writes epub as HTML too, but epub readers rarely run scripts.
+ */
+const INTERACTIVE_FORMATS = new Set(["html", "html4", "html5", "dashboard", "revealjs"]);
+
+/** Whether the output format `to` draws charts with tools interactively. */
+function interactiveFor(to        )          {
+  return INTERACTIVE_FORMATS.has(to.split(/[+-]/)[0]);
+}
+
 /** The output formats whose pages switch between a light and a dark theme with q2's toggle. */
 const TOGGLE_FORMATS = new Set(["html", "html4", "html5", "dashboard"]);
 
 /**
  * The color schemes of the charts of a document whose `theme` is `theme`, in the output format
- * `to`. A theme of a light and a dark variant gives both, in the theme's order, in a format with
- * q2's toggle, and a theme of one variant gives its scheme. A theme's name, no theme, and the
- * formats without the toggle give light.
+ * `to`: light and dark, in that order, for a theme with a dark variant in a format with q2's
+ * toggle, since q2 adds its default light variant to a theme of a dark one alone. A theme's name,
+ * a theme of a light variant alone, no theme, and the formats without the toggle give light.
  */
 function colorSchemesFor(theme         , to        )                {
-  if (!TOGGLE_FORMATS.has(to.split(/[+-]/)[0])) {
-    return ["light"];
-  }
-  if (theme === null || typeof theme !== "object" || Array.isArray(theme)) {
-    return ["light"];
-  }
-  const schemes = Object.keys(theme).filter(
-    (key)                     => key === "light" || key === "dark",
-  );
-  return schemes.length > 0 ? schemes : ["light"];
+  const dark = TOGGLE_FORMATS.has(to.split(/[+-]/)[0]) &&
+    theme !== null && typeof theme === "object" && !Array.isArray(theme) && "dark" in theme;
+  return dark ? ["light", "dark"] : ["light"];
 }
 
 /** The options that only change how q2's core writes a cell, never what avenger computes. */
@@ -177,7 +191,6 @@ function record(
       outputKind: "raw",
       alignment: "ids",
       presentedBy: "core",
-      dependencyData: "jupyter-outputs",
       hashDefinition: {
         id: "avenger",
         version: 1,
@@ -192,13 +205,10 @@ function record(
 }
 
 /**
- * The cells of avenger's response to `request`, from `avenger quarto2-engine` with `env` added to
- * its environment, or avenger's error.
+ * avenger's answer to `request`, from `avenger quarto2-engine` with `env` added to its environment,
+ * or avenger's error.
  */
-function runAvenger(
-  request         ,
-  env                         = {},
-)                          {
+function runAvenger(request         , env                         = {})                  {
   const program = process.env.AVENGER || "avenger";
   return new Promise((resolve, reject) => {
     const child = spawn(program, ["quarto2-engine"], {
@@ -226,7 +236,7 @@ function runAvenger(
       if (failed) {
         return;
       }
-      let response                                            ;
+      let response                                                             ;
       try {
         response = JSON.parse(stdout);
       } catch {
@@ -237,7 +247,7 @@ function runAvenger(
         reject(new Error(response.error ?? "avenger answered no cells"));
         return;
       }
-      resolve(response.cells);
+      resolve({ cells: response.cells, header: response.header });
     });
     child.stdin.end(JSON.stringify(request));
   });
@@ -263,10 +273,27 @@ async function execute(options                )                         {
     image: imageFor(to),
     colorSchemes: colorSchemesFor(options.format.metadata?.theme, to),
     error: options.format.execute.error === true,
+    interactive: interactiveFor(to),
+    // A file that q2 renders alone, outside a project, has its outputs beside it.
+    projectDir: options.projectDir || dirname(options.target.input),
   };
   const env = (options                                                            ).executeEnv;
-  const cells = await runAvenger(request, env ?? {});
-  return { markdown: "", supporting: [], filters: [], ...record(units, cells) }                 ;
+  const { cells, header } = await runAvenger(request, env ?? {});
+  // q2 reads an include from a file, and puts it in the page's header once. Each document has a
+  // file of its own, since the documents of a project can share q2's temporary folder.
+  const includes                           = {};
+  if (header !== undefined) {
+    const file = join(mkdtempSync(join(options.tempDir, "avenger-")), "header.html");
+    writeFileSync(file, header);
+    includes["include-in-header"] = [file];
+  }
+  return {
+    markdown: "",
+    supporting: [],
+    filters: [],
+    includes,
+    ...record(units, cells),
+  }                 ;
 }
 
 let quarto                       ;
@@ -323,4 +350,4 @@ const engine                           = {
   },
 };
 
-export { PROTOCOL, colorSchemesFor, engine as default, execute, imageFor, record, runAvenger };
+export { PROTOCOL, colorSchemesFor, engine as default, execute, imageFor, interactiveFor, record, runAvenger };

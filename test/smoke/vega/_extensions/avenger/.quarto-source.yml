@@ -9,4 +9,4 @@ source: .quarto/avenger-extension
 kind: local-dir
 files:
   _extension.yml: ee282ac40f1863ed5ac34ba831b6678c3a02f73be2fa4c43b9d75560c08b55c9
-  dist/avenger-engine.js: 1fc1541798dd39582792d00322590c119e28bcf09f8b119fe5f89cb3bad0d7e4
+  dist/avenger-engine.js: b20860479969848ecb708cbc626ff3646c7c81c2ed868386467decd6f987b9f7

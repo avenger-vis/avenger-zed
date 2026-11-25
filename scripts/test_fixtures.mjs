@@ -147,8 +147,13 @@ for (const name of files) {
       continue;
     }
     if (query === "runnables.scm") {
-      // A capture prints its start as `(ROW, COLUMN)`, with rows from 0; Zed's rows start at 1.
-      const lines = [...result.stdout.matchAll(/capture: \d+ - run, start: \((\d+), \d+\)/g)]
+      // A capture prints its start and end as `(ROW, COLUMN)`, with rows from 0; Zed's rows start
+      // at 1. Zed drops an arrow whose node ends at the end of the file, so these drop it too.
+      const text = readFileSync(path, "utf8");
+      const lastLine = text.slice(text.lastIndexOf("\n") + 1);
+      const end = `${text.split("\n").length - 1}, ${Buffer.byteLength(lastLine)}`;
+      const lines = [...result.stdout.matchAll(/capture: (?:\d+ - )?run, start: \((\d+), \d+\), end: \((\d+, \d+)\)/g)]
+        .filter(match => match[2] !== end)
         .map(match => Number(match[1]) + 1);
       arrows.push(`${name}: ${lines.length > 0 ? lines.join(", ") : "none"}`);
     }

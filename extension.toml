@@ -8,25 +8,25 @@ repository = "https://github.com/avenger-vis/avenger-zed"
 
 [grammars.avenger_sql]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
-rev = "21dee1bc664226bd4d30c6e39ca29933f01c4393"
+rev = "aba152d7ed405ecbf5afa832a44c6aae2cf5dce3"
 
 # GoogleSQL's format strings and the values of its date, time, and range literals, which Avenger
 # SQL injects, from their directories of the same repository and revision.
 [grammars.avenger_format]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
-rev = "21dee1bc664226bd4d30c6e39ca29933f01c4393"
+rev = "aba152d7ed405ecbf5afa832a44c6aae2cf5dce3"
 path = "format"
 
 [grammars.avenger_datetime]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
-rev = "21dee1bc664226bd4d30c6e39ca29933f01c4393"
+rev = "aba152d7ed405ecbf5afa832a44c6aae2cf5dce3"
 path = "datetime"
 
 # Quarto 2's grammar of Quarto Markdown, which tree-sitter-avenger-sql vendors under its own name,
 # since Zed refuses an extension's grammar named `markdown`, the name of one that Zed builds in.
 [grammars.avenger_qmd]
 repository = "https://github.com/avenger-vis/tree-sitter-avenger-sql"
-rev = "21dee1bc664226bd4d30c6e39ca29933f01c4393"
+rev = "aba152d7ed405ecbf5afa832a44c6aae2cf5dce3"
 path = "qmd"
 
 # The Typst subset of avenger's labels, which Avenger SQL injects into the strings of markup.
